@@ -5,6 +5,7 @@
 import { LovePingButton } from '@/components/features/LovePingButton';
 import { StreakDisplay } from '@/components/journal/StreakDisplay';
 import { Card } from '@/components/ui/Card';
+import { ProfileAvatar } from '@/components/ui/ProfileAvatar';
 import { BorderRadius, FontSizes, Spacing } from '@/constants/couple-theme';
 import { useApp } from '@/context/AppContextSupabase';
 import { format } from 'date-fns';
@@ -12,13 +13,13 @@ import { tr } from 'date-fns/locale';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    RefreshControl,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  RefreshControl,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 export default function HomeScreen() {
@@ -37,7 +38,7 @@ export default function HomeScreen() {
 
   const today = format(new Date(), 'EEEE, d MMMM', { locale: tr });
   const todayDate = format(new Date(), 'yyyy-MM-dd');
-  
+
   const todayEntry = journalEntries.find(e => e.date === todayDate && e.userId === user?.id);
   const pendingTodos = todos.filter(t => !t.isCompleted);
 
@@ -88,14 +89,21 @@ export default function HomeScreen() {
 
         {/* Partner Card */}
         <Card style={{ ...styles.partnerCard, backgroundColor: themeColors.primaryLight }}>
-          <View style={styles.partnerInfo}>
-            <Text style={styles.partnerEmoji}>👩‍❤️‍👨</Text>
-            <View>
-              <Text style={[styles.partnerLabel, { color: themeColors.textSecondary }]}>
-                Sevgilin
+          {/* Coupled Avatars */}
+          <View style={styles.coupledAvatarsContainer}>
+            <View style={styles.avatarWithLabel}>
+              <ProfileAvatar user={user} size={60} showBorder borderColor={themeColors.primary} />
+              <Text style={[styles.avatarLabel, { color: themeColors.textSecondary }]}>
+                {user?.displayName?.split(' ')[0] || 'Sen'}
               </Text>
-              <Text style={[styles.partnerName, { color: themeColors.primaryDark }]}>
-                {partner?.displayName || 'Sevgilim'}
+            </View>
+            <View style={styles.heartContainer}>
+              <Text style={styles.heartEmoji}>💕</Text>
+            </View>
+            <View style={styles.avatarWithLabel}>
+              <ProfileAvatar user={partner} size={60} showBorder borderColor={themeColors.primary} />
+              <Text style={[styles.avatarLabel, { color: themeColors.textSecondary }]}>
+                {partner?.displayName?.split(' ')[0] || 'Sevgilin'}
               </Text>
             </View>
           </View>
@@ -250,6 +258,26 @@ const styles = StyleSheet.create({
   },
   partnerCard: {
     marginBottom: Spacing.md,
+  },
+  coupledAvatarsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.md,
+  },
+  avatarWithLabel: {
+    alignItems: 'center',
+  },
+  avatarLabel: {
+    fontSize: FontSizes.sm,
+    marginTop: Spacing.xs,
+    fontWeight: '500',
+  },
+  heartContainer: {
+    marginHorizontal: Spacing.md,
+  },
+  heartEmoji: {
+    fontSize: 28,
   },
   partnerInfo: {
     flexDirection: 'row',

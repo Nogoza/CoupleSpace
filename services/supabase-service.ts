@@ -4,16 +4,16 @@
 
 import { supabase } from '@/lib/supabase';
 import {
-    Couple,
-    CoupleTodo,
-    DatePlan,
-    JournalEntry,
-    LovePing,
-    Memory,
-    Message,
-    ThemeType,
-    User,
-    UserSettings
+  Couple,
+  CoupleTodo,
+  DatePlan,
+  JournalEntry,
+  LovePing,
+  Memory,
+  Message,
+  ThemeType,
+  User,
+  UserSettings
 } from '@/types';
 
 // ==================== AUTH SERVICE ====================
@@ -141,7 +141,7 @@ export const CoupleService = {
   async createCouple(userId: string): Promise<{ couple: Couple | null; error: string | null }> {
     try {
       console.log('Creating couple for user:', userId);
-      
+
       // Önce kullanıcının zaten bir couple'da olup olmadığını kontrol et
       const existingCouple = await this.getUserCouple(userId);
       if (existingCouple) {
@@ -155,7 +155,7 @@ export const CoupleService = {
 
       const pairingCode = this.generatePairingCode();
       console.log('Generated pairing code:', pairingCode);
-      
+
       const { data, error } = await supabase
         .from('couples')
         .insert({
@@ -256,7 +256,7 @@ export const CoupleService = {
   async getUserCouple(userId: string): Promise<Couple | null> {
     try {
       console.log('Getting couple for user:', userId);
-      
+
       // Önce user1 olarak kontrol et
       const { data: data1, error: error1 } = await supabase
         .from('couples')
@@ -671,7 +671,9 @@ export const MemoryService = {
     category: Memory['category'],
     date: Date,
     description?: string,
-    imageUrl?: string
+    imageUrl?: string,
+    customCategory?: string,
+    imageUrls?: string[]
   ): Promise<{ memory: Memory | null; error: string | null }> {
     const { data, error } = await supabase
       .from('memories')
@@ -682,13 +684,27 @@ export const MemoryService = {
         category,
         date: date.toISOString().split('T')[0],
         description,
-        image_url: imageUrl,
+        image_url: imageUrl || (imageUrls && imageUrls.length > 0 ? imageUrls[0] : null),
+        custom_category: customCategory,
+        image_urls: imageUrls,
       })
       .select()
       .single();
 
     return {
-      memory: data ? mapMemoryFromDB(data) : null,
+      memory: data ? {
+        id: data.id,
+        coupleId: data.couple_id,
+        title: data.title,
+        description: data.description,
+        category: data.category,
+        customCategory: data.custom_category,
+        imageUrl: data.image_url,
+        imageUrls: data.image_urls,
+        date: new Date(data.date),
+        createdBy: data.created_by,
+        createdAt: new Date(data.created_at),
+      } : null,
       error: error?.message || null,
     };
   },
@@ -852,3 +868,162 @@ function mapSettingsFromDB(data: any): UserSettings {
     language: data.language ?? 'tr',
   };
 }
+
+// ==================== STORAGE SERVICE ====================
+export const StorageService = {
+  // Avatar yükle
+  async uploadAvatar(userId: string, imageUri: string): Promise<{ url: string | null; error: string | null }> {
+    try {
+      const fileName = `${userId}/avatar_${Date.now()}.jpg`;
+      const contentType = 'image/jpeg';
+
+      // Görüntüyü oku ve ArrayBuffer'a çevir
+      let arrayBuffer: ArrayBuffer;
+
+      if (imageUri.startsWith('data:')) {
+        // Base64 formatında (web)
+        const base64Data = imageUri.split(',')[1];
+        const binaryString = atob(base64Data);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        arrayBuffer = bytes.buffer;
+      } else {
+        // File URI formatında (native veya web file input)
+        const response = await fetch(imageUri);
+        if (!response.ok) {
+          throw new Error('Dosya okunamadı');
+        }
+        arrayBuffer = await response.arrayBuffer();
+      }
+
+      // Önce eski avatarları sil
+      await this.deleteAvatar(userId);
+
+      // Yeni avatarı yükle - ArrayBuffer olarak
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, arrayBuffer, {
+          contentType,
+          upsert: true,
+        });
+
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        return { url: null, error: uploadError.message };
+      }
+
+      // Public URL al
+      const { data: urlData } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+      return { url: urlData.publicUrl, error: null };
+    } catch (err) {
+      console.error('Avatar upload error:', err);
+      return { url: null, error: err instanceof Error ? err.message : 'Fotoğraf yüklenirken hata oluştu' };
+    }
+  },
+
+  // Avatar sil
+  async deleteAvatar(userId: string): Promise<{ error: string | null }> {
+    try {
+      // Kullanıcının klasöründeki tüm dosyaları listele
+      const { data: files, error: listError } = await supabase.storage
+        .from('avatars')
+        .list(userId);
+
+      if (listError) {
+        console.log('List error (may be empty):', listError);
+        return { error: null }; // Klasör boş olabilir
+      }
+
+      if (files && files.length > 0) {
+        const filesToDelete = files.map(file => `${userId}/${file.name}`);
+        const { error: deleteError } = await supabase.storage
+          .from('avatars')
+          .remove(filesToDelete);
+
+        if (deleteError) {
+          console.error('Delete error:', deleteError);
+          return { error: deleteError.message };
+        }
+      }
+
+      return { error: null };
+    } catch (err) {
+      console.error('Avatar delete error:', err);
+      return { error: err instanceof Error ? err.message : 'Fotoğraf silinirken hata oluştu' };
+    }
+  },
+
+  // Anı fotoğrafı yükle
+  async uploadMemoryPhoto(coupleId: string, imageUri: string): Promise<{ url: string | null; error: string | null }> {
+    try {
+      const fileName = `${coupleId}/${Date.now()}_${Math.random().toString(36).substring(7)}.jpg`;
+      const contentType = 'image/jpeg';
+
+      // Görüntüyü oku ve ArrayBuffer'a çevir
+      let arrayBuffer: ArrayBuffer;
+
+      if (imageUri.startsWith('data:')) {
+        // Base64 formatında (web)
+        const base64Data = imageUri.split(',')[1];
+        const binaryString = atob(base64Data);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        arrayBuffer = bytes.buffer;
+      } else {
+        // File URI formatında (mobile)
+        const response = await fetch(imageUri);
+        if (!response.ok) {
+          throw new Error('Dosya okunamadı');
+        }
+        arrayBuffer = await response.arrayBuffer();
+      }
+
+      // Fotoğrafı yükle
+      const { error: uploadError } = await supabase.storage
+        .from('memories')
+        .upload(fileName, arrayBuffer, {
+          contentType,
+          upsert: false,
+        });
+
+      if (uploadError) {
+        console.error('Memory photo upload error:', uploadError);
+        return { url: null, error: uploadError.message };
+      }
+
+      // Public URL al
+      const { data: urlData } = supabase.storage
+        .from('memories')
+        .getPublicUrl(fileName);
+
+      return { url: urlData.publicUrl, error: null };
+    } catch (err) {
+      console.error('Memory photo upload error:', err);
+      return { url: null, error: err instanceof Error ? err.message : 'Fotoğraf yüklenirken hata oluştu' };
+    }
+  },
+
+  // Çoklu anı fotoğrafı yükle
+  async uploadMemoryPhotos(coupleId: string, imageUris: string[]): Promise<{ urls: string[]; error: string | null }> {
+    const urls: string[] = [];
+
+    for (const uri of imageUris) {
+      const { url, error } = await this.uploadMemoryPhoto(coupleId, uri);
+      if (error) {
+        return { urls: [], error };
+      }
+      if (url) {
+        urls.push(url);
+      }
+    }
+
+    return { urls, error: null };
+  },
+};

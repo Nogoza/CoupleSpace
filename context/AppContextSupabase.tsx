@@ -4,28 +4,29 @@
 
 import { DEFAULT_THEME, ThemeColors } from '@/constants/couple-theme';
 import {
-    AuthService,
-    CoupleService,
-    DatePlanService,
-    JournalService,
-    LovePingService,
-    MemoryService,
-    MessageService,
-    SettingsService,
-    TodoService,
+  AuthService,
+  CoupleService,
+  DatePlanService,
+  JournalService,
+  LovePingService,
+  MemoryService,
+  MessageService,
+  SettingsService,
+  StorageService,
+  TodoService,
 } from '@/services/supabase-service';
 import {
-    Couple,
-    CoupleTodo,
-    DatePlan,
-    JournalEntry,
-    LovePing,
-    Memory,
-    Message,
-    MoodCheckIn,
-    ThemeType,
-    User,
-    UserSettings,
+  Couple,
+  CoupleTodo,
+  DatePlan,
+  JournalEntry,
+  LovePing,
+  Memory,
+  Message,
+  MoodCheckIn,
+  ThemeType,
+  User,
+  UserSettings,
 } from '@/types';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
@@ -40,6 +41,8 @@ interface AppContextType {
   signUp: (email: string, password: string, displayName: string) => Promise<{ error: string | null }>;
   logout: () => Promise<void>;
   updateProfile: (updates: Partial<User>) => Promise<void>;
+  updateProfilePhoto: (imageUri: string) => Promise<{ error: string | null }>;
+  removeProfilePhoto: () => Promise<{ error: string | null }>;
 
   // Couple & Partner
   couple: Couple | null;
@@ -111,7 +114,9 @@ interface AppContextType {
     category: Memory['category'],
     date: Date,
     description?: string,
-    imageUrl?: string
+    imageUrl?: string,
+    customCategory?: string,
+    imageUrls?: string[]
   ) => Promise<void>;
   refreshMemories: () => Promise<void>;
 
@@ -253,7 +258,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const coupleSub = CoupleService.subscribeToCouple(coupleId, async (updatedCouple) => {
       console.log('Couple updated via realtime:', updatedCouple);
       setCouple(updatedCouple);
-      
+
       // Eğer user2Id yeni eklendiyse (partner katıldı), partner bilgilerini yükle
       if (updatedCouple.user2Id && user) {
         const partnerData = await CoupleService.getPartner(updatedCouple, user.id);
@@ -334,13 +339,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         }
       });
       setSubscriptions([]);
-      
+
       // Supabase'den çıkış yap
       const { error } = await AuthService.signOut();
       if (error) {
         console.error('SignOut error:', error);
       }
-      
+
       // State'i sıfırla
       resetState();
       console.log('Logout successful');
@@ -357,32 +362,74 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setUser({ ...user, ...updates });
   };
 
+  const updateProfilePhoto = async (imageUri: string): Promise<{ error: string | null }> => {
+    if (!user) return { error: 'Kullanıcı bulunamadı' };
+
+    try {
+      // Fotoğrafı Storage'a yükle
+      const { url, error: uploadError } = await StorageService.uploadAvatar(user.id, imageUri);
+      if (uploadError || !url) {
+        return { error: uploadError || 'Fotoğraf yüklenemedi' };
+      }
+
+      // Kullanıcı profilini güncelle
+      await AuthService.updateProfile(user.id, { avatarUrl: url });
+      setUser({ ...user, avatarUrl: url });
+
+      return { error: null };
+    } catch (err) {
+      console.error('updateProfilePhoto error:', err);
+      return { error: err instanceof Error ? err.message : 'Fotoğraf güncellenirken hata oluştu' };
+    }
+  };
+
+  const removeProfilePhoto = async (): Promise<{ error: string | null }> => {
+    if (!user) return { error: 'Kullanıcı bulunamadı' };
+
+    try {
+      // Storage'dan sil
+      const { error: deleteError } = await StorageService.deleteAvatar(user.id);
+      if (deleteError) {
+        console.log('Delete warning:', deleteError);
+      }
+
+      // Kullanıcı profilini güncelle
+      await AuthService.updateProfile(user.id, { avatarUrl: undefined });
+      setUser({ ...user, avatarUrl: undefined });
+
+      return { error: null };
+    } catch (err) {
+      console.error('removeProfilePhoto error:', err);
+      return { error: err instanceof Error ? err.message : 'Fotoğraf silinirken hata oluştu' };
+    }
+  };
+
   // ==================== COUPLE ====================
   const createCoupleHandler = async (): Promise<string> => {
     if (!user) {
       console.error('createCoupleHandler: User not logged in');
       throw new Error('Önce giriş yapmalısınız');
     }
-    
+
     console.log('Creating couple for user:', user.id);
     const { couple: newCouple, error } = await CoupleService.createCouple(user.id);
-    
+
     if (error) {
       console.error('createCoupleHandler error:', error);
       throw new Error(error);
     }
-    
+
     if (!newCouple) {
       console.error('createCoupleHandler: No couple returned');
       throw new Error('Eşleşme kodu oluşturulamadı');
     }
-    
+
     console.log('Couple created successfully:', newCouple);
     setCouple(newCouple);
-    
+
     // Realtime subscription'ı başlat - partner katıldığında güncellenecek
     setupRealtimeSubscriptions(newCouple.id);
-    
+
     return newCouple.pairingCode;
   };
 
@@ -408,10 +455,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       console.log('No couple to disconnect');
       return;
     }
-    
+
     try {
       console.log('Disconnecting couple:', couple.id);
-      
+
       // Subscriptions'ları temizle
       subscriptions.forEach((sub) => {
         try {
@@ -421,13 +468,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         }
       });
       setSubscriptions([]);
-      
+
       // Supabase'de couple'ı deaktive et
       const { error } = await CoupleService.disconnect(couple.id);
       if (error) {
         console.error('Disconnect error:', error);
       }
-      
+
       // Local state'i temizle
       setCouple(null);
       setPartner(null);
@@ -438,7 +485,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setMemories([]);
       setLovePings([]);
       setMoodCheckIns([]);
-      
+
       console.log('Disconnect successful');
     } catch (error) {
       console.error('Disconnect error:', error);
@@ -644,9 +691,21 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     category: Memory['category'],
     date: Date,
     description?: string,
-    imageUrl?: string
+    imageUrl?: string,
+    customCategory?: string,
+    imageUrls?: string[]
   ) => {
     if (!couple || !user) return;
+
+    // Fotoğrafları yükle
+    let uploadedUrls: string[] = [];
+    if (imageUrls && imageUrls.length > 0) {
+      const { urls, error } = await StorageService.uploadMemoryPhotos(couple.id, imageUrls);
+      if (!error && urls.length > 0) {
+        uploadedUrls = urls;
+      }
+    }
+
     const { memory } = await MemoryService.createMemory(
       couple.id,
       user.id,
@@ -654,7 +713,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       category,
       date,
       description,
-      imageUrl
+      imageUrl || (uploadedUrls.length > 0 ? uploadedUrls[0] : undefined),
+      customCategory,
+      uploadedUrls.length > 0 ? uploadedUrls : undefined
     );
     if (memory) {
       setMemories((prev) => [memory, ...prev]);
@@ -690,6 +751,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     login,
     signUp,
     logout,
+    updateProfilePhoto,
+    removeProfilePhoto,
     updateProfile,
 
     // Couple

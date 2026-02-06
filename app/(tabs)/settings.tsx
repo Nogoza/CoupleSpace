@@ -3,6 +3,7 @@
 // ============================================
 
 import { Card } from '@/components/ui/Card';
+import { ProfileAvatar } from '@/components/ui/ProfileAvatar';
 import { BorderRadius, FontSizes, Spacing, Themes } from '@/constants/couple-theme';
 import { useApp } from '@/context/AppContextSupabase';
 import { ThemeType } from '@/types';
@@ -10,20 +11,22 @@ import { differenceInDays, format } from 'date-fns';
 import { tr } from 'date-fns/locale';
 import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
+import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    Alert,
-    Modal,
-    SafeAreaView,
-    ScrollView,
-    Share,
-    StyleSheet,
-    Switch,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  Modal,
+  SafeAreaView,
+  ScrollView,
+  Share,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import Animated, { FadeInDown, FadeInRight } from 'react-native-reanimated';
 
@@ -51,12 +54,16 @@ export default function SettingsScreen() {
     createCouple,
     joinCouple,
     updateNickname,
+    updateProfilePhoto,
+    removeProfilePhoto,
   } = useApp();
 
   const [showThemePicker, setShowThemePicker] = useState(false);
   const [showNicknameModal, setShowNicknameModal] = useState(false);
   const [showPairingModal, setShowPairingModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
+  const [showPhotoOptions, setShowPhotoOptions] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [nickname, setNickname] = useState(couple?.nicknames?.[user?.id || ''] || '');
   const [pairingCode, setPairingCode] = useState(couple?.pairingCode || '');
   const [joinCode, setJoinCode] = useState('');
@@ -67,6 +74,89 @@ export default function SettingsScreen() {
     await Haptics.selectionAsync();
     await changeTheme(newTheme);
     setShowThemePicker(false);
+  };
+
+  // Profil fotoğrafı seçme
+  const handlePickImage = async (useCamera: boolean = false) => {
+    setShowPhotoOptions(false);
+
+    try {
+      let result: ImagePicker.ImagePickerResult;
+
+      if (useCamera) {
+        // Kamera izni iste
+        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert('İzin Gerekli', 'Kamera kullanmak için izin vermeniz gerekiyor.');
+          return;
+        }
+        result = await ImagePicker.launchCameraAsync({
+          mediaTypes: ['images'],
+          allowsEditing: true,
+          aspect: [1, 1],
+          quality: 0.8,
+        });
+      } else {
+        // Galeri izni iste
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert('İzin Gerekli', 'Galeriye erişmek için izin vermeniz gerekiyor.');
+          return;
+        }
+        result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ['images'],
+          allowsEditing: true,
+          aspect: [1, 1],
+          quality: 0.8,
+        });
+      }
+
+      if (!result.canceled && result.assets[0]) {
+        setIsUploadingPhoto(true);
+        const { error } = await updateProfilePhoto(result.assets[0].uri);
+        setIsUploadingPhoto(false);
+
+        if (error) {
+          Alert.alert('Hata', error);
+        } else {
+          await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          Alert.alert('✅ Başarılı', 'Profil fotoğrafınız güncellendi!');
+        }
+      }
+    } catch (error) {
+      setIsUploadingPhoto(false);
+      console.error('Image picker error:', error);
+      Alert.alert('Hata', 'Fotoğraf seçilirken bir hata oluştu.');
+    }
+  };
+
+  // Profil fotoğrafını kaldır
+  const handleRemovePhoto = async () => {
+    setShowPhotoOptions(false);
+
+    Alert.alert(
+      'Fotoğrafı Kaldır',
+      'Profil fotoğrafınızı kaldırmak istediğinize emin misiniz?',
+      [
+        { text: 'İptal', style: 'cancel' },
+        {
+          text: 'Kaldır',
+          style: 'destructive',
+          onPress: async () => {
+            setIsUploadingPhoto(true);
+            const { error } = await removeProfilePhoto();
+            setIsUploadingPhoto(false);
+
+            if (error) {
+              Alert.alert('Hata', error);
+            } else {
+              await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+              Alert.alert('✅ Başarılı', 'Profil fotoğrafınız kaldırıldı!');
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleToggleSetting = async (key: string, value: boolean) => {
@@ -204,9 +294,22 @@ export default function SettingsScreen() {
         <Animated.View entering={FadeInDown.duration(400)}>
           <Card style={styles.profileCard}>
             <View style={styles.profileHeader}>
-              <View style={[styles.avatar, { backgroundColor: themeColors.primaryLight }]}>
-                <Text style={styles.avatarEmoji}>💑</Text>
-              </View>
+              <TouchableOpacity
+                onPress={() => setShowPhotoOptions(true)}
+                disabled={isUploadingPhoto}
+                style={styles.avatarContainer}
+              >
+                {isUploadingPhoto ? (
+                  <View style={[styles.avatar, { backgroundColor: themeColors.primaryLight }]}>
+                    <ActivityIndicator color={themeColors.primary} />
+                  </View>
+                ) : (
+                  <ProfileAvatar user={user} size={60} />
+                )}
+                <View style={[styles.editBadge, { backgroundColor: themeColors.primary }]}>
+                  <Text style={styles.editBadgeText}>📷</Text>
+                </View>
+              </TouchableOpacity>
               <View style={styles.profileInfo}>
                 <Text style={[styles.profileName, { color: themeColors.text }]}>
                   {user?.displayName || user?.name || 'Kullanıcı'}
@@ -315,7 +418,14 @@ export default function SettingsScreen() {
               </>
             ) : (
               <View style={styles.connectedSection}>
-                <Text style={styles.connectedEmoji}>💑</Text>
+                {/* Profil Fotoğrafları ve Kalp */}
+                <View style={styles.coupledAvatars}>
+                  <ProfileAvatar user={user} size={60} showBorder borderColor={themeColors.primary} />
+                  <View style={styles.heartContainer}>
+                    <Text style={styles.heartEmoji}>💕</Text>
+                  </View>
+                  <ProfileAvatar user={partner} size={60} showBorder borderColor={themeColors.primary} />
+                </View>
                 <Text style={[styles.connectedTitle, { color: themeColors.text }]}>
                   Bağlısınız!
                 </Text>
@@ -666,7 +776,7 @@ export default function SettingsScreen() {
             <TouchableOpacity
               style={[
                 styles.joinButton,
-                { 
+                {
                   backgroundColor: joinCode.length === 6 ? themeColors.primary : themeColors.border,
                   opacity: joinCode.length === 6 && !isJoining ? 1 : 0.6,
                 },
@@ -681,6 +791,54 @@ export default function SettingsScreen() {
             <Text style={[styles.joinNote, { color: themeColors.textSecondary }]}>
               Partneriniz önce kod oluşturmuş olmalıdır
             </Text>
+          </View>
+        </SafeAreaView>
+      </Modal>
+
+      {/* Photo Options Modal */}
+      <Modal
+        visible={showPhotoOptions}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowPhotoOptions(false)}
+      >
+        <SafeAreaView style={[styles.photoModalContainer, { backgroundColor: themeColors.background }]}>
+          <View style={[styles.photoModalHeader, { backgroundColor: themeColors.surface }]}>
+            <Text style={[styles.photoModalTitle, { color: themeColors.text }]}>📷 Profil Fotoğrafı</Text>
+          </View>
+          <View style={styles.photoModalContent}>
+            <TouchableOpacity
+              style={[styles.photoOption, { backgroundColor: themeColors.surface }]}
+              onPress={() => handlePickImage(false)}
+            >
+              <Text style={styles.photoOptionIcon}>🖼️</Text>
+              <Text style={[styles.photoOptionText, { color: themeColors.text }]}>Galeriden Seç</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.photoOption, { backgroundColor: themeColors.surface }]}
+              onPress={() => handlePickImage(true)}
+            >
+              <Text style={styles.photoOptionIcon}>📸</Text>
+              <Text style={[styles.photoOptionText, { color: themeColors.text }]}>Kamera ile Çek</Text>
+            </TouchableOpacity>
+
+            {user?.avatarUrl && (
+              <TouchableOpacity
+                style={[styles.photoOption, { backgroundColor: themeColors.surface }]}
+                onPress={handleRemovePhoto}
+              >
+                <Text style={styles.photoOptionIcon}>🗑️</Text>
+                <Text style={[styles.photoOptionText, { color: '#E57373' }]}>Fotoğrafı Kaldır</Text>
+              </TouchableOpacity>
+            )}
+
+            <TouchableOpacity
+              style={[styles.photoOptionCancel, { backgroundColor: themeColors.border }]}
+              onPress={() => setShowPhotoOptions(false)}
+            >
+              <Text style={[styles.photoOptionCancelText, { color: themeColors.text }]}>İptal</Text>
+            </TouchableOpacity>
           </View>
         </SafeAreaView>
       </Modal>
@@ -711,6 +869,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: Spacing.md,
+  },
+  avatarContainer: {
+    position: 'relative',
+    marginRight: Spacing.md,
+  },
+  editBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#FFF',
+  },
+  editBadgeText: {
+    fontSize: 10,
   },
   avatarEmoji: {
     fontSize: 30,
@@ -938,6 +1115,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: Spacing.lg,
   },
+  coupledAvatars: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  heartContainer: {
+    marginHorizontal: -10,
+    zIndex: 1,
+  },
+  heartEmoji: {
+    fontSize: 28,
+  },
   connectedEmoji: {
     fontSize: 48,
     marginBottom: Spacing.sm,
@@ -983,5 +1172,47 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.sm,
     textAlign: 'center',
     fontStyle: 'italic',
+  },
+  // Photo Options Modal Styles
+  photoModalContainer: {
+    flex: 1,
+  },
+  photoModalHeader: {
+    paddingVertical: Spacing.lg,
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.05)',
+  },
+  photoModalTitle: {
+    fontSize: FontSizes.lg,
+    fontWeight: '600',
+  },
+  photoModalContent: {
+    padding: Spacing.lg,
+    gap: Spacing.md,
+  },
+  photoOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.lg,
+  },
+  photoOptionIcon: {
+    fontSize: 24,
+    marginRight: Spacing.md,
+  },
+  photoOptionText: {
+    fontSize: FontSizes.md,
+    fontWeight: '500',
+  },
+  photoOptionCancel: {
+    alignItems: 'center',
+    padding: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    marginTop: Spacing.md,
+  },
+  photoOptionCancelText: {
+    fontSize: FontSizes.md,
+    fontWeight: '500',
   },
 });

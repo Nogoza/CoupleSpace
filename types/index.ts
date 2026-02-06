@@ -49,7 +49,7 @@ export interface MessageReaction {
   createdAt: Date;
 }
 
-export type QuickMessageType = 
+export type QuickMessageType =
   | 'seniSeviyorum'
   | 'gununNasilGecti'
   | 'sendenBirSeyIstiyorum'
@@ -67,7 +67,7 @@ export const QuickMessages: Record<QuickMessageType, string> = {
 };
 
 // ==================== JOURNAL ====================
-export type MoodType = 
+export type MoodType =
   | 'mutlu'
   | 'sakin'
   | 'ozledim'
@@ -195,7 +195,7 @@ export interface CoupleTodo {
   createdAt: Date;
 }
 
-export type TodoCategory = 
+export type TodoCategory =
   | 'film'
   | 'restaurant'
   | 'travel'
@@ -233,19 +233,22 @@ export interface Memory {
   title: string;
   description?: string;
   category: MemoryCategory;
-  imageUrl?: string;
+  customCategory?: string; // Özel kategori adı (category === 'custom' ise)
+  imageUrl?: string; // Eski uyumluluk için
+  imageUrls?: string[]; // Çoklu fotoğraf desteği
   date: Date;
   createdBy: string;
   createdAt: Date;
 }
 
-export type MemoryCategory = 
+export type MemoryCategory =
   | 'ilkBulusma'
   | 'enKomikAn'
   | 'seyahat'
   | 'ozelGun'
   | 'surpriz'
-  | 'diger';
+  | 'diger'
+  | 'custom'; // Özel kategori
 
 export const MemoryCategoryLabels: Record<MemoryCategory, string> = {
   ilkBulusma: 'İlk Buluşma 💕',
@@ -254,6 +257,7 @@ export const MemoryCategoryLabels: Record<MemoryCategory, string> = {
   ozelGun: 'Özel Gün 🎉',
   surpriz: 'Sürpriz 🎁',
   diger: 'Diğer 📸',
+  custom: 'Özel 🏷️',
 };
 
 // ==================== MOOD CHECK-IN ====================

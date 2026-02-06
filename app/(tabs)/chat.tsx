@@ -2,6 +2,7 @@
 // CoupleSpace - Chat Screen
 // ============================================
 
+import { PartnerAvatar } from '@/components/ui/ProfileAvatar';
 import { BorderRadius, FontSizes, Shadows, Spacing } from '@/constants/couple-theme';
 import { useApp } from '@/context/AppContextSupabase';
 import { Message, QuickMessages, QuickMessageType } from '@/types';
@@ -10,18 +11,18 @@ import { tr } from 'date-fns/locale';
 import * as Haptics from 'expo-haptics';
 import React, { useEffect, useRef, useState } from 'react';
 import {
-    FlatList,
-    KeyboardAvoidingView,
-    Platform,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import Animated, {
-    FadeIn
+  FadeIn
 } from 'react-native-reanimated';
 
 export default function ChatScreen() {
@@ -50,7 +51,7 @@ export default function ChatScreen() {
 
   const handleSend = async () => {
     if (!inputText.trim()) return;
-    
+
     await sendMessage(inputText.trim());
     setInputText('');
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -72,7 +73,7 @@ export default function ChatScreen() {
     const showDate =
       index === 0 ||
       format(new Date(item.createdAt), 'yyyy-MM-dd') !==
-        format(new Date(messages[index - 1].createdAt), 'yyyy-MM-dd');
+      format(new Date(messages[index - 1].createdAt), 'yyyy-MM-dd');
 
     return (
       <Animated.View entering={FadeIn.duration(300)}>
@@ -117,7 +118,7 @@ export default function ChatScreen() {
                 </Text>
               )}
             </View>
-            
+
             {/* Reactions */}
             {item.reactions.length > 0 && (
               <View
@@ -139,17 +140,20 @@ export default function ChatScreen() {
     );
   };
 
+  // Mesajları ters çevir (inverted FlatList için)
+  const reversedMessages = [...messages].reverse();
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={styles.keyboardView}
-        keyboardVerticalOffset={90}
-      >
-        {/* Header */}
+    <KeyboardAvoidingView
+      style={[styles.container, { backgroundColor: themeColors.background }]}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+    >
+      {/* Header */}
+      <SafeAreaView style={styles.headerSafeArea}>
         <View style={[styles.header, { backgroundColor: themeColors.surface }]}>
-          <Text style={styles.headerEmoji}>💕</Text>
-          <View>
+          <PartnerAvatar user={partner} size={40} />
+          <View style={styles.headerInfo}>
             <Text style={[styles.headerName, { color: themeColors.text }]}>
               {partner?.displayName || 'Sevgilim'}
             </Text>
@@ -160,98 +164,101 @@ export default function ChatScreen() {
             )}
           </View>
         </View>
+      </SafeAreaView>
 
-        {/* Messages List */}
-        <FlatList
-          ref={flatListRef}
-          data={messages}
-          renderItem={renderMessage}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.messagesList}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyEmoji}>💌</Text>
-              <Text style={[styles.emptyText, { color: themeColors.textSecondary }]}>
-                Henüz mesaj yok.{'\n'}İlk mesajı sen gönder! 💕
-              </Text>
-            </View>
-          }
+      {/* Messages List - Inverted */}
+      <FlatList
+        ref={flatListRef}
+        data={reversedMessages}
+        renderItem={renderMessage}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.messagesList}
+        style={styles.messagesContainer}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        inverted
+        ListEmptyComponent={
+          <View style={[styles.emptyState, { transform: [{ scaleY: -1 }] }]}>
+            <Text style={styles.emptyEmoji}>💌</Text>
+            <Text style={[styles.emptyText, { color: themeColors.textSecondary }]}>
+              Henüz mesaj yok.{'\n'}İlk mesajı sen gönder! 💕
+            </Text>
+          </View>
+        }
+      />
+
+      {/* Quick Messages */}
+      {showQuickMessages && (
+        <Animated.View
+          entering={FadeIn.duration(200)}
+          style={[styles.quickMessagesPanel, { backgroundColor: themeColors.surface }]}
+        >
+          <Text style={[styles.quickMessagesTitle, { color: themeColors.text }]}>
+            Hızlı Mesajlar 💬
+          </Text>
+          <View style={styles.quickMessagesGrid}>
+            {(Object.keys(QuickMessages) as QuickMessageType[]).map((type) => (
+              <TouchableOpacity
+                key={type}
+                onPress={() => handleQuickMessage(type)}
+                style={[
+                  styles.quickMessageButton,
+                  { backgroundColor: themeColors.primaryLight },
+                ]}
+              >
+                <Text style={[styles.quickMessageText, { color: themeColors.primaryDark }]}>
+                  {QuickMessages[type]}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </Animated.View>
+      )}
+
+      {/* Input Area */}
+      <View style={[styles.inputArea, { backgroundColor: themeColors.surface }]}>
+        <TouchableOpacity
+          onPress={() => setShowQuickMessages(!showQuickMessages)}
+          style={[
+            styles.quickButton,
+            showQuickMessages && { backgroundColor: themeColors.primary },
+          ]}
+        >
+          <Text style={styles.quickButtonEmoji}>⚡</Text>
+        </TouchableOpacity>
+
+        <TextInput
+          value={inputText}
+          onChangeText={setInputText}
+          placeholder="Mesaj yaz..."
+          placeholderTextColor={themeColors.textSecondary}
+          style={[
+            styles.input,
+            {
+              backgroundColor: themeColors.background,
+              color: themeColors.text,
+            },
+          ]}
+          multiline
+          maxLength={500}
         />
 
-        {/* Quick Messages */}
-        {showQuickMessages && (
-          <Animated.View
-            entering={FadeIn.duration(200)}
-            style={[styles.quickMessagesPanel, { backgroundColor: themeColors.surface }]}
-          >
-            <Text style={[styles.quickMessagesTitle, { color: themeColors.text }]}>
-              Hızlı Mesajlar 💬
-            </Text>
-            <View style={styles.quickMessagesGrid}>
-              {(Object.keys(QuickMessages) as QuickMessageType[]).map((type) => (
-                <TouchableOpacity
-                  key={type}
-                  onPress={() => handleQuickMessage(type)}
-                  style={[
-                    styles.quickMessageButton,
-                    { backgroundColor: themeColors.primaryLight },
-                  ]}
-                >
-                  <Text style={[styles.quickMessageText, { color: themeColors.primaryDark }]}>
-                    {QuickMessages[type]}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </Animated.View>
-        )}
-
-        {/* Input Area */}
-        <View style={[styles.inputArea, { backgroundColor: themeColors.surface }]}>
-          <TouchableOpacity
-            onPress={() => setShowQuickMessages(!showQuickMessages)}
-            style={[
-              styles.quickButton,
-              showQuickMessages && { backgroundColor: themeColors.primary },
-            ]}
-          >
-            <Text style={styles.quickButtonEmoji}>⚡</Text>
-          </TouchableOpacity>
-
-          <TextInput
-            value={inputText}
-            onChangeText={setInputText}
-            placeholder="Mesaj yaz..."
-            placeholderTextColor={themeColors.textSecondary}
-            style={[
-              styles.input,
-              {
-                backgroundColor: themeColors.background,
-                color: themeColors.text,
-              },
-            ]}
-            multiline
-            maxLength={500}
-          />
-
-          <TouchableOpacity
-            onPress={handleSend}
-            disabled={!inputText.trim()}
-            style={[
-              styles.sendButton,
-              {
-                backgroundColor: inputText.trim()
-                  ? themeColors.primary
-                  : themeColors.border,
-              },
-            ]}
-          >
-            <Text style={styles.sendEmoji}>💕</Text>
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+        <TouchableOpacity
+          onPress={handleSend}
+          disabled={!inputText.trim()}
+          style={[
+            styles.sendButton,
+            {
+              backgroundColor: inputText.trim()
+                ? themeColors.primary
+                : themeColors.border,
+            },
+          ]}
+        >
+          <Text style={styles.sendEmoji}>💕</Text>
+        </TouchableOpacity>
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -259,8 +266,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  safeArea: {
+    flex: 1,
+  },
   keyboardView: {
     flex: 1,
+  },
+  messagesContainer: {
+    flex: 1,
+  },
+  headerSafeArea: {
+    backgroundColor: 'transparent',
   },
   header: {
     flexDirection: 'row',
@@ -268,6 +284,10 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(0,0,0,0.05)',
+    gap: Spacing.md,
+  },
+  headerInfo: {
+    flex: 1,
   },
   headerEmoji: {
     fontSize: 32,

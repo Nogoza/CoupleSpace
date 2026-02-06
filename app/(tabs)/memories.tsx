@@ -8,25 +8,28 @@ import { ConfettiAnimation } from '@/components/ui/SuccessAnimation';
 import { BorderRadius, FontSizes, Spacing } from '@/constants/couple-theme';
 import { useApp } from '@/context/AppContextSupabase';
 import {
-    CoupleTodo,
-    DatePlan,
-    MemoryCategory,
-    MemoryCategoryLabels,
-    TodoCategory,
-    TodoCategoryEmojis
+  CoupleTodo,
+  DatePlan,
+  MemoryCategory,
+  MemoryCategoryLabels,
+  TodoCategory,
+  TodoCategoryEmojis
 } from '@/types';
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
+import * as ImagePicker from 'expo-image-picker';
 import React, { useState } from 'react';
 import {
-    Modal,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Image,
+  Modal,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
@@ -42,6 +45,7 @@ export default function MemoriesScreen() {
     completeTodo,
     datePlans,
     createDatePlan,
+    couple,
   } = useApp();
 
   const [activeTab, setActiveTab] = useState<TabType>('memories');
@@ -54,6 +58,13 @@ export default function MemoriesScreen() {
   const [memoryTitle, setMemoryTitle] = useState('');
   const [memoryDesc, setMemoryDesc] = useState('');
   const [memoryCategory, setMemoryCategory] = useState<MemoryCategory>('diger');
+  const [memoryPhotos, setMemoryPhotos] = useState<string[]>([]);
+  const [customCategoryName, setCustomCategoryName] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+
+  // Filter state
+  const [selectedFilter, setSelectedFilter] = useState<MemoryCategory | 'all'>('all');
+  const [customCategories, setCustomCategories] = useState<string[]>([]);
 
   // Todo form state
   const [todoTitle, setTodoTitle] = useState('');
@@ -65,13 +76,61 @@ export default function MemoriesScreen() {
   const [dateNotes, setDateNotes] = useState('');
   const [dateLocation, setDateLocation] = useState('');
 
+  // Fotoğraf seç
+  const pickImage = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert('İzin Gerekli', 'Fotoğraf seçmek için galeri iznine ihtiyacımız var.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsMultipleSelection: true,
+      quality: 0.7,
+      selectionLimit: 5,
+    });
+
+    if (!result.canceled && result.assets.length > 0) {
+      const newPhotos = result.assets.map(asset => asset.uri);
+      setMemoryPhotos(prev => [...prev, ...newPhotos].slice(0, 5));
+    }
+  };
+
+  // Fotoğraf kaldır
+  const removePhoto = (index: number) => {
+    setMemoryPhotos(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Anı ekle
   const handleAddMemory = async () => {
     if (!memoryTitle.trim()) return;
-    await createMemory(memoryTitle, memoryCategory, new Date(), memoryDesc);
-    setShowAddMemory(false);
+
+    setIsUploading(true);
+    try {
+      const customCat = memoryCategory === 'custom' ? customCategoryName : undefined;
+      await createMemory(memoryTitle, memoryCategory, new Date(), memoryDesc, undefined, customCat, memoryPhotos);
+
+      // Özel kategoriyi listeye ekle
+      if (customCat && !customCategories.includes(customCat)) {
+        setCustomCategories(prev => [...prev, customCat]);
+      }
+
+      setShowAddMemory(false);
+      resetMemoryForm();
+    } catch (error) {
+      Alert.alert('Hata', 'Anı eklenirken bir hata oluştu.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const resetMemoryForm = () => {
     setMemoryTitle('');
     setMemoryDesc('');
     setMemoryCategory('diger');
+    setMemoryPhotos([]);
+    setCustomCategoryName('');
   };
 
   const handleAddTodo = async () => {
@@ -145,54 +204,136 @@ export default function MemoriesScreen() {
               />
             </View>
 
-            {/* Memory Categories */}
+            {/* Filter Categories */}
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
               style={styles.categoriesScroll}
             >
+              <TouchableOpacity
+                onPress={() => setSelectedFilter('all')}
+                style={[
+                  styles.categoryChip,
+                  {
+                    backgroundColor: selectedFilter === 'all'
+                      ? themeColors.primary
+                      : themeColors.primaryLight,
+                  },
+                ]}
+              >
+                <Text style={[
+                  styles.categoryText,
+                  { color: selectedFilter === 'all' ? '#FFF' : themeColors.primaryDark }
+                ]}>
+                  Tümü
+                </Text>
+              </TouchableOpacity>
               {(Object.keys(MemoryCategoryLabels) as MemoryCategory[]).map((cat) => (
-                <View
+                <TouchableOpacity
                   key={cat}
+                  onPress={() => setSelectedFilter(cat)}
                   style={[
                     styles.categoryChip,
-                    { backgroundColor: themeColors.primaryLight },
+                    {
+                      backgroundColor: selectedFilter === cat
+                        ? themeColors.primary
+                        : themeColors.primaryLight,
+                    },
                   ]}
                 >
-                  <Text style={[styles.categoryText, { color: themeColors.primaryDark }]}>
+                  <Text style={[
+                    styles.categoryText,
+                    { color: selectedFilter === cat ? '#FFF' : themeColors.primaryDark }
+                  ]}>
                     {MemoryCategoryLabels[cat]}
                   </Text>
-                </View>
+                </TouchableOpacity>
               ))}
             </ScrollView>
 
-            {/* Memories Grid */}
-            <View style={styles.memoriesGrid}>
-              {memories.map((memory, index) => (
-                <Animated.View
-                  key={memory.id}
-                  entering={FadeInDown.delay(index * 100).duration(400)}
-                  style={styles.memoryCardWrapper}
-                >
-                  <Card style={styles.memoryCard}>
-                    <View style={styles.memoryImagePlaceholder}>
-                      <Text style={styles.memoryPlaceholderEmoji}>📷</Text>
+            {/* Instagram Style Memories List */}
+            <View style={styles.instagramFeed}>
+              {memories
+                .filter(m => selectedFilter === 'all' || m.category === selectedFilter)
+                .map((memory, index) => (
+                  <Animated.View
+                    key={memory.id}
+                    entering={FadeInDown.delay(index * 100).duration(400)}
+                    style={styles.instagramPost}
+                  >
+                    {/* Post Header */}
+                    <View style={styles.postHeader}>
+                      <View style={styles.postCategory}>
+                        <Text style={[styles.postCategoryText, { color: themeColors.primary }]}>
+                          {memory.category === 'custom' && memory.customCategory
+                            ? `🏷️ ${memory.customCategory}`
+                            : MemoryCategoryLabels[memory.category]}
+                        </Text>
+                      </View>
+                      <Text style={[styles.postDate, { color: themeColors.textSecondary }]}>
+                        {format(new Date(memory.date), 'd MMM yyyy', { locale: tr })}
+                      </Text>
                     </View>
-                    <Text style={[styles.memoryTitle, { color: themeColors.text }]}>
-                      {memory.title}
-                    </Text>
-                    <Text style={[styles.memoryDate, { color: themeColors.textSecondary }]}>
-                      {format(new Date(memory.date), 'd MMM yyyy', { locale: tr })}
-                    </Text>
-                  </Card>
-                </Animated.View>
-              ))}
+
+                    {/* Post Image Carousel */}
+                    <View style={[styles.postImage, { backgroundColor: themeColors.surface }]}>
+                      {memory.imageUrl || (memory.imageUrls && memory.imageUrls.length > 0) ? (
+                        memory.imageUrls && memory.imageUrls.length > 1 ? (
+                          <ScrollView
+                            horizontal
+                            pagingEnabled
+                            showsHorizontalScrollIndicator={false}
+                            style={styles.imageCarousel}
+                          >
+                            {memory.imageUrls.map((imageUri, imgIndex) => (
+                              <Image
+                                key={imgIndex}
+                                source={{ uri: imageUri }}
+                                style={styles.carouselImage}
+                                resizeMode="cover"
+                              />
+                            ))}
+                          </ScrollView>
+                        ) : (
+                          <Image
+                            source={{ uri: memory.imageUrls?.[0] || memory.imageUrl }}
+                            style={styles.postImageContent}
+                            resizeMode="cover"
+                          />
+                        )
+                      ) : (
+                        <View style={styles.postImagePlaceholder}>
+                          <Text style={styles.postImagePlaceholderEmoji}>📸</Text>
+                        </View>
+                      )}
+                      {memory.imageUrls && memory.imageUrls.length > 1 && (
+                        <View style={styles.carouselIndicator}>
+                          <Text style={styles.carouselIndicatorText}>
+                            ◀ {memory.imageUrls.length} fotoğraf ▶
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+
+                    {/* Post Content */}
+                    <View style={styles.postContent}>
+                      <Text style={[styles.postTitle, { color: themeColors.text }]}>
+                        {memory.title}
+                      </Text>
+                      {memory.description && (
+                        <Text style={[styles.postDescription, { color: themeColors.textSecondary }]}>
+                          {memory.description}
+                        </Text>
+                      )}
+                    </View>
+                  </Animated.View>
+                ))}
             </View>
 
-            {memories.length === 0 && (
+            {memories.filter(m => selectedFilter === 'all' || m.category === selectedFilter).length === 0 && (
               <EmptyState
                 emoji="📸"
-                title="Henüz anı yok"
+                title={selectedFilter === 'all' ? "Henüz anı yok" : "Bu kategoride anı yok"}
                 subtitle="İlk anınızı ekleyin!"
                 themeColors={themeColors}
               />
@@ -356,6 +497,52 @@ export default function MemoriesScreen() {
                 </TouchableOpacity>
               ))}
             </View>
+
+            {/* Özel Kategori Input */}
+            {memoryCategory === 'custom' && (
+              <TextInput
+                value={customCategoryName}
+                onChangeText={setCustomCategoryName}
+                placeholder="Kategori adı yazın..."
+                placeholderTextColor={themeColors.textSecondary}
+                style={[styles.input, { backgroundColor: themeColors.surface, color: themeColors.text, marginTop: Spacing.sm }]}
+              />
+            )}
+
+            {/* Fotoğraf Ekleme */}
+            <Text style={[styles.label, { color: themeColors.text, marginTop: Spacing.md }]}>
+              Fotoğraflar (max 5)
+            </Text>
+            <View style={styles.photoGrid}>
+              {memoryPhotos.map((uri, index) => (
+                <View key={index} style={styles.photoPreviewContainer}>
+                  <Image source={{ uri }} style={styles.photoPreview} />
+                  <TouchableOpacity
+                    onPress={() => removePhoto(index)}
+                    style={styles.photoRemoveButton}
+                  >
+                    <Text style={styles.photoRemoveText}>✕</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+              {memoryPhotos.length < 5 && (
+                <TouchableOpacity
+                  onPress={pickImage}
+                  style={[styles.photoAddButton, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
+                >
+                  <Text style={styles.photoAddText}>📷+</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* Yükleniyor */}
+            {isUploading && (
+              <View style={styles.uploadingContainer}>
+                <Text style={[styles.uploadingText, { color: themeColors.primary }]}>
+                  Anı kaydediliyor...
+                </Text>
+              </View>
+            )}
           </ScrollView>
         </SafeAreaView>
       </Modal>
@@ -628,6 +815,99 @@ const styles = StyleSheet.create({
   categoryText: {
     fontSize: FontSizes.sm,
   },
+  // Instagram Style Memories
+  instagramFeed: {
+    gap: Spacing.lg,
+  },
+  instagramPost: {
+    borderRadius: BorderRadius.lg,
+    overflow: 'hidden',
+  },
+  postHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: Spacing.sm,
+  },
+  postCategory: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  postCategoryText: {
+    fontSize: FontSizes.sm,
+    fontWeight: '600',
+  },
+  postDate: {
+    fontSize: FontSizes.xs,
+  },
+  postImage: {
+    aspectRatio: 1,
+    borderRadius: BorderRadius.lg,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  imageCarousel: {
+    width: '100%',
+    height: '100%',
+  },
+  carouselImage: {
+    width: 350,
+    height: 350,
+    marginRight: 0,
+  },
+  carouselIndicator: {
+    position: 'absolute',
+    bottom: Spacing.sm,
+    alignSelf: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.full,
+  },
+  carouselIndicatorText: {
+    color: '#FFF',
+    fontSize: FontSizes.xs,
+    fontWeight: '500',
+  },
+  postImageContent: {
+    width: '100%',
+    height: '100%',
+  },
+  postImagePlaceholder: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  postImagePlaceholderEmoji: {
+    fontSize: 60,
+    opacity: 0.5,
+  },
+  multiplePhotosIndicator: {
+    position: 'absolute',
+    top: Spacing.sm,
+    right: Spacing.sm,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.full,
+  },
+  multiplePhotosText: {
+    color: '#FFF',
+    fontSize: FontSizes.xs,
+    fontWeight: '600',
+  },
+  postContent: {
+    paddingVertical: Spacing.sm,
+  },
+  postTitle: {
+    fontSize: FontSizes.md,
+    fontWeight: '600',
+  },
+  postDescription: {
+    fontSize: FontSizes.sm,
+    marginTop: Spacing.xs,
+  },
+  // Old Grid (keep for backwards compatibility)
   memoriesGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -800,5 +1080,55 @@ const styles = StyleSheet.create({
   },
   categoryOptionText: {
     fontSize: FontSizes.sm,
+  },
+  // Photo Styles
+  photoGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+  },
+  photoPreviewContainer: {
+    position: 'relative',
+  },
+  photoPreview: {
+    width: 80,
+    height: 80,
+    borderRadius: BorderRadius.md,
+  },
+  photoRemoveButton: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#FF4444',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  photoRemoveText: {
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  photoAddButton: {
+    width: 80,
+    height: 80,
+    borderRadius: BorderRadius.md,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  photoAddText: {
+    fontSize: 24,
+  },
+  uploadingContainer: {
+    marginTop: Spacing.md,
+    alignItems: 'center',
+  },
+  uploadingText: {
+    fontSize: FontSizes.md,
+    fontWeight: '500',
   },
 });
