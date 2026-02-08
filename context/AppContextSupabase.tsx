@@ -66,6 +66,11 @@ interface AppContextType {
   // Messages
   messages: Message[];
   sendMessage: (content: string, type?: Message['messageType']) => Promise<void>;
+  sendMediaMessage: (
+    type: 'image' | 'audio' | 'file',
+    uri: string,
+    options?: { fileName?: string; fileSize?: number; duration?: number; mimeType?: string }
+  ) => Promise<void>;
   addReaction: (messageId: string, emoji: string) => Promise<void>;
   refreshMessages: () => Promise<void>;
 
@@ -542,6 +547,70 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
 
+  const sendMediaMessage = async (
+    type: 'image' | 'audio' | 'file',
+    uri: string,
+    options?: { fileName?: string; fileSize?: number; duration?: number; mimeType?: string }
+  ) => {
+    if (!couple || !user) {
+      console.error('sendMediaMessage: No couple or user');
+      return;
+    }
+
+    // Dynamically import storage service to avoid circular deps
+    const { uploadImage, uploadAudio, uploadFile } = await import('@/services/storage-service');
+
+    let mediaUrl: string | null = null;
+    let uploadError: string | null = null;
+
+    // Upload based on type
+    if (type === 'image') {
+      const result = await uploadImage(uri, couple.id);
+      mediaUrl = result.url;
+      uploadError = result.error;
+    } else if (type === 'audio') {
+      const result = await uploadAudio(uri, couple.id);
+      mediaUrl = result.url;
+      uploadError = result.error;
+    } else if (type === 'file') {
+      const result = await uploadFile(uri, couple.id, options?.mimeType);
+      mediaUrl = result.url;
+      uploadError = result.error;
+    }
+
+    if (uploadError || !mediaUrl) {
+      console.error('Media upload error:', uploadError);
+      return;
+    }
+
+    // Send message with media
+    const content = type === 'image' ? '📷 Görsel' : type === 'audio' ? '🎤 Sesli mesaj' : `📄 ${options?.fileName || 'Dosya'}`;
+    const { message, error } = await MessageService.sendMessage(
+      couple.id,
+      user.id,
+      content,
+      type,
+      {
+        mediaUrl,
+        fileName: options?.fileName,
+        fileSize: options?.fileSize,
+        mediaDuration: options?.duration,
+      }
+    );
+
+    if (error) {
+      console.error('sendMediaMessage error:', error);
+      return;
+    }
+    if (message) {
+      console.log('Media message sent successfully:', message.id);
+      setMessages((prev) => {
+        if (prev.some((m) => m.id === message.id)) return prev;
+        return [...prev, message];
+      });
+    }
+  };
+
   const addReaction = async (messageId: string, emoji: string) => {
     if (!user) return;
     await MessageService.addReaction(messageId, user.id, emoji);
@@ -777,6 +846,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     // Messages
     messages,
     sendMessage,
+    sendMediaMessage,
     addReaction,
     refreshMessages,
 
