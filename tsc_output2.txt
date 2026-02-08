@@ -1,0 +1,5 @@
+﻿services/supabase-service.ts(695,7): error TS2322: Type '{ id: string; coupleId: string; title: string; description: string | null; category: string; customCategory: string | null; imageUrl: string | null; imageUrls: string[] | null; date: Date; createdBy: string; createdAt: Date; } | null' is not assignable to type 'Memory | null'.
+  Type '{ id: string; coupleId: string; title: string; description: string | null; category: string; customCategory: string | null; imageUrl: string | null; imageUrls: string[] | null; date: Date; createdBy: string; createdAt: Date; }' is not assignable to type 'Memory'.
+    Types of property 'description' are incompatible.
+      Type 'string | null' is not assignable to type 'string | undefined'.
+        Type 'null' is not assignable to type 'string | undefined'.

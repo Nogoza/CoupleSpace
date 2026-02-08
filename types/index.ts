@@ -36,7 +36,11 @@ export interface Message {
   coupleId: string;
   senderId: string;
   content: string;
-  messageType: 'text' | 'image' | 'quickMessage' | 'lovePing';
+  messageType: 'text' | 'image' | 'audio' | 'file' | 'sticker' | 'quickMessage' | 'lovePing';
+  mediaUrl?: string; // Görsel, ses, dosya URL'i
+  fileName?: string; // Dosya adı
+  fileSize?: number; // Dosya boyutu (bytes)
+  mediaDuration?: number; // Ses süresi (saniye)
   reactions: MessageReaction[];
   isRead: boolean;
   readAt?: Date;
@@ -48,6 +52,15 @@ export interface MessageReaction {
   emoji: string;
   createdAt: Date;
 }
+
+// Sticker listesi
+export const Stickers = [
+  '❤️', '😍', '🥰', '💕', '💖', '💗', '💘', '💝',
+  '😘', '😚', '🤗', '🥺', '😊', '🙈', '💋', '🌹',
+  '🦋', '✨', '🌙', '⭐', '🌈', '🍀', '🎀', '🧸',
+] as const;
+
+export type StickerType = typeof Stickers[number];
 
 export type QuickMessageType =
   | 'seniSeviyorum'

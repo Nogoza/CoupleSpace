@@ -12,25 +12,25 @@ import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    SafeAreaView,
-    Share,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  SafeAreaView,
+  Share,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import Animated, {
-    useAnimatedStyle,
-    useSharedValue,
-    withRepeat,
-    withSequence,
-    withTiming,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
 } from 'react-native-reanimated';
 
 export default function PairingScreen() {
   const { user, couple, createCouple, joinCouple, isPaired } = useApp();
   const themeColors = ThemeColors.softPink;
-  
+
   const [mode, setMode] = useState<'choose' | 'create' | 'join'>('choose');
   const [pairingCode, setPairingCode] = useState('');
   const [myCode, setMyCode] = useState('');
@@ -108,7 +108,7 @@ export default function PairingScreen() {
 
     setIsLoading(true);
     setError('');
-    
+
     try {
       const success = await joinCouple(joinCode.toUpperCase());
       if (success) {

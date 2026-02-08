@@ -1,0 +1,77 @@
+﻿services/supabase-service.ts(116,15): error TS2345: Argument of type '{ display_name: string | undefined; nickname: string | undefined; avatar_url: string | undefined; updated_at: string; }' is not assignable to parameter of type 'never'.
+services/supabase-service.ts(161,10): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { count?: "planned" | "exact" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "couples", never, "POST">', gave the following error.
+    Argument of type '{ pairing_code: string; user1_id: string; theme: string; is_active: boolean; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { count?: "planned" | "exact" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "couples", never, "POST">', gave the following error.
+    Object literal may only specify known properties, and 'pairing_code' does not exist in type 'never[]'.
+services/supabase-service.ts(182,69): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { count?: "planned" | "exact" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "streaks", never, "POST">', gave the following error.
+    Argument of type '{ couple_id: any; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { count?: "planned" | "exact" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "streaks", never, "POST">', gave the following error.
+    Object literal may only specify known properties, and 'couple_id' does not exist in type 'never[]'.
+services/supabase-service.ts(182,94): error TS2339: Property 'id' does not exist on type 'never'.
+services/supabase-service.ts(211,20): error TS2339: Property 'user1_id' does not exist on type 'never'.
+services/supabase-service.ts(216,20): error TS2339: Property 'user2_id' does not exist on type 'never'.
+services/supabase-service.ts(229,15): error TS2345: Argument of type '{ user2_id: string; connected_at: string; }' is not assignable to parameter of type 'never'.
+services/supabase-service.ts(233,28): error TS2339: Property 'id' does not exist on type 'never'.
+services/supabase-service.ts(245,28): error TS2339: Property 'user1_id' does not exist on type 'never'.
+services/supabase-service.ts(320,15): error TS2345: Argument of type '{ theme: ThemeType; }' is not assignable to parameter of type 'never'.
+services/supabase-service.ts(330,15): error TS2345: Argument of type '{ nicknames: Record<string, string>; }' is not assignable to parameter of type 'never'.
+services/supabase-service.ts(340,15): error TS2345: Argument of type '{ is_active: boolean; }' is not assignable to parameter of type 'never'.
+services/supabase-service.ts(386,8): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { count?: "planned" | "exact" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "messages", never, "POST">', gave the following error.
+    Argument of type '{ couple_id: string; sender_id: string; content: string; message_type: "text" | "image" | "quickMessage" | "lovePing"; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { count?: "planned" | "exact" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "messages", never, "POST">', gave the following error.
+    Object literal may only specify known properties, and 'couple_id' does not exist in type 'never[]'.
+services/supabase-service.ts(405,8): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { onConflict?: string | undefined; ignoreDuplicates?: boolean | undefined; count?: "planned" | "exact" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ ...; }, ... 5 more ..., "POST">', gave the following error.
+    Argument of type '{ message_id: string; user_id: string; emoji: string; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { onConflict?: string | undefined; ignoreDuplicates?: boolean | undefined; count?: "planned" | "exact" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<...>', gave the following error.
+    Object literal may only specify known properties, and 'message_id' does not exist in type 'never[]'.
+services/supabase-service.ts(418,15): error TS2345: Argument of type '{ is_read: boolean; }' is not assignable to parameter of type 'never'.
+services/supabase-service.ts(465,8): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { count?: "planned" | "exact" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "journal_entries", never, "POST">', gave the following error.
+    Argument of type '{ couple_id: string; user_id: string; date: string; content: string; mood: MoodType; tags: string[]; privacy: JournalPrivacy; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { count?: "planned" | "exact" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "journal_entries", never, "POST">', gave the following error.
+    Object literal may only specify known properties, and 'couple_id' does not exist in type 'never[]'.
+services/supabase-service.ts(479,43): error TS2345: Argument of type '{ p_couple_id: string; p_entry_date: string; }' is not assignable to parameter of type 'undefined'.
+services/supabase-service.ts(492,15): error TS2345: Argument of type '{ privacy: JournalPrivacy; updated_at: string; }' is not assignable to parameter of type 'never'.
+services/supabase-service.ts(507,22): error TS2339: Property 'current_streak' does not exist on type 'never'.
+services/supabase-service.ts(508,22): error TS2339: Property 'longest_streak' does not exist on type 'never'.
+services/supabase-service.ts(519,8): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { count?: "planned" | "exact" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "love_pings", never, "POST">', gave the following error.
+    Argument of type '{ couple_id: string; sender_id: string; note: string | undefined; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { count?: "planned" | "exact" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "love_pings", never, "POST">', gave the following error.
+    Object literal may only specify known properties, and 'couple_id' does not exist in type 'never[]'.
+services/supabase-service.ts(578,8): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { count?: "planned" | "exact" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "couple_todos", never, "POST">', gave the following error.
+    Argument of type '{ couple_id: string; created_by: string; title: string; description: string | undefined; category: TodoCategory; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { count?: "planned" | "exact" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "couple_todos", never, "POST">', gave the following error.
+    Object literal may only specify known properties, and 'couple_id' does not exist in type 'never[]'.
+services/supabase-service.ts(598,15): error TS2345: Argument of type '{ is_completed: boolean; completed_by: string; completed_at: string; }' is not assignable to parameter of type 'never'.
+services/supabase-service.ts(634,8): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { count?: "planned" | "exact" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "date_plans", never, "POST">', gave the following error.
+    Argument of type '{ couple_id: string; created_by: string; title: string; date: string; time: string | undefined; location: string | undefined; notes: string | undefined; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { count?: "planned" | "exact" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "date_plans", never, "POST">', gave the following error.
+    Object literal may only specify known properties, and 'couple_id' does not exist in type 'never[]'.
+services/supabase-service.ts(680,8): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { count?: "planned" | "exact" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "memories", never, "POST">', gave the following error.
+    Argument of type '{ couple_id: string; created_by: string; title: string; category: MemoryCategory; date: string; description: string | undefined; image_url: string | null; custom_category: string | undefined; image_urls: string[] | undefined; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { count?: "planned" | "exact" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "memories", never, "POST">', gave the following error.
+    Object literal may only specify known properties, and 'couple_id' does not exist in type 'never[]'.
+services/supabase-service.ts(696,18): error TS2339: Property 'id' does not exist on type 'never'.
+services/supabase-service.ts(697,24): error TS2339: Property 'couple_id' does not exist on type 'never'.
+services/supabase-service.ts(698,21): error TS2339: Property 'title' does not exist on type 'never'.
+services/supabase-service.ts(699,27): error TS2339: Property 'description' does not exist on type 'never'.
+services/supabase-service.ts(700,24): error TS2339: Property 'category' does not exist on type 'never'.
+services/supabase-service.ts(701,30): error TS2339: Property 'custom_category' does not exist on type 'never'.
+services/supabase-service.ts(702,24): error TS2339: Property 'image_url' does not exist on type 'never'.
+services/supabase-service.ts(703,25): error TS2339: Property 'image_urls' does not exist on type 'never'.
+services/supabase-service.ts(704,29): error TS2339: Property 'date' does not exist on type 'never'.
+services/supabase-service.ts(705,25): error TS2339: Property 'created_by' does not exist on type 'never'.
+services/supabase-service.ts(706,34): error TS2339: Property 'created_at' does not exist on type 'never'.
+services/supabase-service.ts(730,8): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { onConflict?: string | undefined; ignoreDuplicates?: boolean | undefined; count?: "planned" | "exact" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ ...; }, ... 5 more ..., "POST">', gave the following error.
+    Argument of type '{ user_id: string; notifications_enabled: boolean | undefined; lock_screen_privacy: boolean | undefined; daily_reminder: boolean | undefined; reminder_time: string | undefined; language: "tr" | ... 1 more ... | undefined; updated_at: string; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { onConflict?: string | undefined; ignoreDuplicates?: boolean | undefined; count?: "planned" | "exact" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<...>', gave the following error.
+    Object literal may only specify known properties, and 'user_id' does not exist in type 'never[]'.

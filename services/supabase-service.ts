@@ -379,7 +379,13 @@ export const MessageService = {
     coupleId: string,
     senderId: string,
     content: string,
-    messageType: Message['messageType'] = 'text'
+    messageType: Message['messageType'] = 'text',
+    mediaOptions?: {
+      mediaUrl?: string;
+      fileName?: string;
+      fileSize?: number;
+      mediaDuration?: number;
+    }
   ): Promise<{ message: Message | null; error: string | null }> {
     const { data, error } = await supabase
       .from('messages')
@@ -388,6 +394,10 @@ export const MessageService = {
         sender_id: senderId,
         content,
         message_type: messageType,
+        media_url: mediaOptions?.mediaUrl || null,
+        file_name: mediaOptions?.fileName || null,
+        file_size: mediaOptions?.fileSize || null,
+        media_duration: mediaOptions?.mediaDuration || null,
       })
       .select()
       .single();
@@ -696,11 +706,11 @@ export const MemoryService = {
         id: data.id,
         coupleId: data.couple_id,
         title: data.title,
-        description: data.description,
-        category: data.category,
-        customCategory: data.custom_category,
-        imageUrl: data.image_url,
-        imageUrls: data.image_urls,
+        description: data.description ?? undefined,
+        category: data.category as Memory['category'],
+        customCategory: data.custom_category ?? undefined,
+        imageUrl: data.image_url ?? undefined,
+        imageUrls: data.image_urls ?? undefined,
         date: new Date(data.date),
         createdBy: data.created_by,
         createdAt: new Date(data.created_at),
@@ -777,6 +787,10 @@ function mapMessageFromDB(data: any): Message {
     senderId: data.sender_id,
     content: data.content,
     messageType: data.message_type,
+    mediaUrl: data.media_url || undefined,
+    fileName: data.file_name || undefined,
+    fileSize: data.file_size || undefined,
+    mediaDuration: data.media_duration || undefined,
     isRead: data.is_read,
     createdAt: new Date(data.created_at),
     reactions: data.reactions?.map((r: any) => ({
