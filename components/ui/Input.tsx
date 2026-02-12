@@ -1,22 +1,22 @@
 // ============================================
-// CoupleSpace - Input Component
+// CoupleSpace - Modern Input Component
 // ============================================
 
-import { BorderRadius, FontSizes, Shadows, Spacing } from '@/constants/couple-theme';
+import { BorderRadius, FontSizes, Spacing } from '@/constants/couple-theme';
 import { useApp } from '@/context/AppContextSupabase';
 import React, { useState } from 'react';
 import {
-    StyleSheet,
-    Text,
-    TextInput,
-    TextInputProps,
-    View,
-    ViewStyle,
+  StyleSheet,
+  Text,
+  TextInput,
+  TextInputProps,
+  View,
+  ViewStyle,
 } from 'react-native';
 import Animated, {
-    useAnimatedStyle,
-    useSharedValue,
-    withTiming,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
 } from 'react-native-reanimated';
 
 interface InputProps extends TextInputProps {
@@ -41,7 +41,7 @@ export function Input({
 
   const animatedBorderStyle = useAnimatedStyle(() => ({
     borderColor: borderAnimation.value === 1 ? themeColors.primary : themeColors.border,
-    borderWidth: borderAnimation.value === 1 ? 2 : 1,
+    borderWidth: borderAnimation.value === 1 ? 1.5 : 1,
   }));
 
   const handleFocus = () => {
@@ -57,15 +57,18 @@ export function Input({
   return (
     <View style={[styles.container, containerStyle]}>
       {label && (
-        <Text style={[styles.label, { color: themeColors.text }]}>{label}</Text>
+        <Text style={[styles.label, { color: isFocused ? themeColors.primary : themeColors.text }]}>
+          {label}
+        </Text>
       )}
       <Animated.View
         style={[
           styles.inputContainer,
-          { backgroundColor: themeColors.surface },
+          {
+            backgroundColor: isFocused ? themeColors.surface : themeColors.borderLight,
+          },
           animatedBorderStyle,
-          error ? { borderColor: themeColors.error } : undefined,
-          isFocused ? Shadows.small : undefined,
+          error ? { borderColor: themeColors.error, borderWidth: 1.5 } : undefined,
         ]}
       >
         {leftIcon && <View style={styles.iconLeft}>{leftIcon}</View>}
@@ -76,7 +79,7 @@ export function Input({
             leftIcon ? styles.inputWithLeftIcon : undefined,
             rightIcon ? styles.inputWithRightIcon : undefined,
           ]}
-          placeholderTextColor={themeColors.textSecondary}
+          placeholderTextColor={themeColors.textTertiary}
           onFocus={handleFocus}
           onBlur={handleBlur}
           {...props}
@@ -96,8 +99,9 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: FontSizes.sm,
-    fontWeight: '500',
-    marginBottom: Spacing.xs,
+    fontWeight: '600',
+    marginBottom: Spacing.sm,
+    letterSpacing: 0.2,
   },
   inputContainer: {
     flexDirection: 'row',
@@ -125,5 +129,6 @@ const styles = StyleSheet.create({
   error: {
     fontSize: FontSizes.xs,
     marginTop: Spacing.xs,
+    fontWeight: '500',
   },
 });

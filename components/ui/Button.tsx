@@ -1,22 +1,23 @@
 // ============================================
-// CoupleSpace - Reusable Button Component
+// CoupleSpace - Modern Button Component
 // ============================================
 
-import { BorderRadius, FontSizes, FontWeights, Spacing } from '@/constants/couple-theme';
+import { BorderRadius, FontSizes, FontWeights, Shadows, Spacing } from '@/constants/couple-theme';
 import { useApp } from '@/context/AppContextSupabase';
 import React from 'react';
 import {
-    ActivityIndicator,
-    StyleSheet,
-    Text,
-    TextStyle,
-    TouchableOpacity,
-    ViewStyle,
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TextStyle,
+  TouchableOpacity,
+  View,
+  ViewStyle,
 } from 'react-native';
 import Animated, {
-    useAnimatedStyle,
-    useSharedValue,
-    withSpring,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
 } from 'react-native-reanimated';
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
@@ -24,7 +25,7 @@ const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 interface ButtonProps {
   title: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'soft';
   size?: 'small' | 'medium' | 'large';
   disabled?: boolean;
   loading?: boolean;
@@ -54,11 +55,11 @@ export function Button({
   }));
 
   const handlePressIn = () => {
-    scale.value = withSpring(0.95);
+    scale.value = withSpring(0.96, { damping: 15, stiffness: 200 });
   };
 
   const handlePressOut = () => {
-    scale.value = withSpring(1);
+    scale.value = withSpring(1, { damping: 15, stiffness: 200 });
   };
 
   const getBackgroundColor = () => {
@@ -68,6 +69,8 @@ export function Button({
         return themeColors.primary;
       case 'secondary':
         return themeColors.primaryLight;
+      case 'soft':
+        return themeColors.primary + '15';
       case 'outline':
       case 'ghost':
         return 'transparent';
@@ -77,12 +80,14 @@ export function Button({
   };
 
   const getTextColor = () => {
-    if (disabled) return themeColors.textSecondary;
+    if (disabled) return themeColors.textTertiary;
     switch (variant) {
       case 'primary':
         return '#FFFFFF';
       case 'secondary':
         return themeColors.primaryDark;
+      case 'soft':
+        return themeColors.primary;
       case 'outline':
       case 'ghost':
         return themeColors.primary;
@@ -94,11 +99,11 @@ export function Button({
   const getSizeStyles = (): ViewStyle => {
     switch (size) {
       case 'small':
-        return { paddingVertical: Spacing.sm, paddingHorizontal: Spacing.md };
+        return { paddingVertical: Spacing.sm + 2, paddingHorizontal: Spacing.md };
       case 'large':
-        return { paddingVertical: Spacing.lg, paddingHorizontal: Spacing.xl };
+        return { paddingVertical: Spacing.md + 2, paddingHorizontal: Spacing.xl };
       default:
-        return { paddingVertical: Spacing.md, paddingHorizontal: Spacing.lg };
+        return { paddingVertical: Spacing.md - 2, paddingHorizontal: Spacing.lg };
     }
   };
 
@@ -113,6 +118,11 @@ export function Button({
     }
   };
 
+  const getShadow = () => {
+    if (disabled || variant !== 'primary') return {};
+    return Shadows.colored(themeColors.primary);
+  };
+
   return (
     <AnimatedTouchable
       style={[
@@ -120,10 +130,11 @@ export function Button({
         getSizeStyles(),
         {
           backgroundColor: getBackgroundColor(),
-          borderColor: variant === 'outline' ? themeColors.primary : 'transparent',
-          borderWidth: variant === 'outline' ? 2 : 0,
+          borderColor: variant === 'outline' ? themeColors.primary + '40' : 'transparent',
+          borderWidth: variant === 'outline' ? 1.5 : 0,
         },
         fullWidth && styles.fullWidth,
+        getShadow(),
         animatedStyle,
         style,
       ]}
@@ -136,19 +147,18 @@ export function Button({
       {loading ? (
         <ActivityIndicator color={getTextColor()} size="small" />
       ) : (
-        <>
-          {icon && <>{icon}</>}
+        <View style={styles.content}>
+          {icon && <View style={styles.iconContainer}>{icon}</View>}
           <Text
             style={[
               styles.text,
               { color: getTextColor(), fontSize: getTextSize() },
-              icon ? styles.textWithIcon : undefined,
               textStyle,
             ]}
           >
             {title}
           </Text>
-        </>
+        </View>
       )}
     </AnimatedTouchable>
   );
@@ -164,11 +174,17 @@ const styles = StyleSheet.create({
   fullWidth: {
     width: '100%',
   },
+  content: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconContainer: {
+    marginRight: Spacing.sm,
+  },
   text: {
     fontWeight: FontWeights.semibold,
     textAlign: 'center',
-  },
-  textWithIcon: {
-    marginLeft: Spacing.sm,
+    letterSpacing: 0.2,
   },
 });
