@@ -1,10 +1,10 @@
 // ============================================
-// CoupleSpace - Theme Constants
+// CoupleSpace - Modern Theme Constants
 // ============================================
 
 import { ThemeType } from '@/types';
 
-// Tema Renk Paletleri
+// Modern Tema Renk Paletleri
 export const ThemeColors: Record<ThemeType, {
   primary: string;
   primaryLight: string;
@@ -13,87 +13,123 @@ export const ThemeColors: Record<ThemeType, {
   accent: string;
   background: string;
   surface: string;
+  surfaceElevated: string;
   text: string;
   textSecondary: string;
+  textTertiary: string;
   border: string;
+  borderLight: string;
   success: string;
   error: string;
   heart: string;
+  gradientStart: string;
+  gradientEnd: string;
+  overlay: string;
 }> = {
   softPink: {
-    primary: '#FF8FAB',
-    primaryLight: '#FFDEE6',
-    primaryDark: '#E75480',
-    secondary: '#FFB6C1',
-    accent: '#FF69B4',
-    background: '#FFF5F7',
+    primary: '#F472B6',
+    primaryLight: '#FDF2F8',
+    primaryDark: '#DB2777',
+    secondary: '#FBCFE8',
+    accent: '#FB7185',
+    background: '#FEFCFB',
     surface: '#FFFFFF',
-    text: '#2D2D2D',
-    textSecondary: '#6B6B6B',
-    border: '#FFE4E9',
-    success: '#7ED6A3',
-    error: '#FF6B6B',
-    heart: '#FF1744',
+    surfaceElevated: '#FFFFFF',
+    text: '#1A1A2E',
+    textSecondary: '#8E8E9A',
+    textTertiary: '#B8B8C4',
+    border: '#F3F0EE',
+    borderLight: '#FAF5F3',
+    success: '#34D399',
+    error: '#EF4444',
+    heart: '#E11D48',
+    gradientStart: '#FDF2F8',
+    gradientEnd: '#FEFCFB',
+    overlay: 'rgba(26,26,46,0.4)',
   },
   lavender: {
-    primary: '#B19CD9',
-    primaryLight: '#E6E0F3',
-    primaryDark: '#8B7BB5',
-    secondary: '#D8BFD8',
-    accent: '#9370DB',
-    background: '#FAF8FF',
+    primary: '#A78BFA',
+    primaryLight: '#F5F3FF',
+    primaryDark: '#7C3AED',
+    secondary: '#DDD6FE',
+    accent: '#8B5CF6',
+    background: '#FAFAFE',
     surface: '#FFFFFF',
-    text: '#2D2D2D',
-    textSecondary: '#6B6B6B',
-    border: '#E8E0F0',
-    success: '#7ED6A3',
-    error: '#FF6B6B',
-    heart: '#FF1744',
+    surfaceElevated: '#FFFFFF',
+    text: '#1A1A2E',
+    textSecondary: '#8E8E9A',
+    textTertiary: '#B8B8C4',
+    border: '#F0EEF5',
+    borderLight: '#F7F5FA',
+    success: '#34D399',
+    error: '#EF4444',
+    heart: '#E11D48',
+    gradientStart: '#F5F3FF',
+    gradientEnd: '#FAFAFE',
+    overlay: 'rgba(26,26,46,0.4)',
   },
   nightBlue: {
-    primary: '#6B8CC7',
-    primaryLight: '#B8C9E8',
-    primaryDark: '#4A6FA5',
-    secondary: '#87CEEB',
-    accent: '#5F9EA0',
-    background: '#F5F8FC',
+    primary: '#60A5FA',
+    primaryLight: '#EFF6FF',
+    primaryDark: '#2563EB',
+    secondary: '#BFDBFE',
+    accent: '#818CF8',
+    background: '#F8FAFC',
     surface: '#FFFFFF',
-    text: '#2D2D2D',
-    textSecondary: '#6B6B6B',
-    border: '#E0E8F0',
-    success: '#7ED6A3',
-    error: '#FF6B6B',
-    heart: '#FF1744',
+    surfaceElevated: '#FFFFFF',
+    text: '#1A1A2E',
+    textSecondary: '#8E8E9A',
+    textTertiary: '#B8B8C4',
+    border: '#EEF0F5',
+    borderLight: '#F5F7FA',
+    success: '#34D399',
+    error: '#EF4444',
+    heart: '#E11D48',
+    gradientStart: '#EFF6FF',
+    gradientEnd: '#F8FAFC',
+    overlay: 'rgba(26,26,46,0.4)',
   },
   mintGreen: {
-    primary: '#98D8AA',
-    primaryLight: '#D4F0DC',
-    primaryDark: '#6BBF8A',
-    secondary: '#B8E6C1',
-    accent: '#66CDAA',
-    background: '#F5FFF8',
+    primary: '#34D399',
+    primaryLight: '#ECFDF5',
+    primaryDark: '#059669',
+    secondary: '#A7F3D0',
+    accent: '#6EE7B7',
+    background: '#F8FDFB',
     surface: '#FFFFFF',
-    text: '#2D2D2D',
-    textSecondary: '#6B6B6B',
-    border: '#E0F5E6',
-    success: '#7ED6A3',
-    error: '#FF6B6B',
-    heart: '#FF1744',
+    surfaceElevated: '#FFFFFF',
+    text: '#1A1A2E',
+    textSecondary: '#8E8E9A',
+    textTertiary: '#B8B8C4',
+    border: '#EEF5F0',
+    borderLight: '#F5FAF7',
+    success: '#34D399',
+    error: '#EF4444',
+    heart: '#E11D48',
+    gradientStart: '#ECFDF5',
+    gradientEnd: '#F8FDFB',
+    overlay: 'rgba(26,26,46,0.4)',
   },
   peach: {
-    primary: '#FFAB91',
-    primaryLight: '#FFDDD1',
-    primaryDark: '#E57A5A',
-    secondary: '#FFCCBC',
-    accent: '#FF7043',
-    background: '#FFF8F5',
+    primary: '#FB923C',
+    primaryLight: '#FFF7ED',
+    primaryDark: '#EA580C',
+    secondary: '#FED7AA',
+    accent: '#F97316',
+    background: '#FFFCFA',
     surface: '#FFFFFF',
-    text: '#2D2D2D',
-    textSecondary: '#6B6B6B',
-    border: '#FFE8E0',
-    success: '#7ED6A3',
-    error: '#FF6B6B',
-    heart: '#FF1744',
+    surfaceElevated: '#FFFFFF',
+    text: '#1A1A2E',
+    textSecondary: '#8E8E9A',
+    textTertiary: '#B8B8C4',
+    border: '#F5F0EE',
+    borderLight: '#FAF7F5',
+    success: '#34D399',
+    error: '#EF4444',
+    heart: '#E11D48',
+    gradientStart: '#FFF7ED',
+    gradientEnd: '#FFFCFA',
+    overlay: 'rgba(26,26,46,0.4)',
   },
 };
 
@@ -103,7 +139,7 @@ export const Themes = ThemeColors;
 // Default tema
 export const DEFAULT_THEME: ThemeType = 'softPink';
 
-// Spacing
+// Spacing — generous & modern
 export const Spacing = {
   xs: 4,
   sm: 8,
@@ -111,65 +147,79 @@ export const Spacing = {
   lg: 24,
   xl: 32,
   xxl: 48,
+  xxxl: 64,
 };
 
-// Border Radius
+// Border Radius — softer corners
 export const BorderRadius = {
-  sm: 8,
-  md: 12,
-  lg: 16,
+  xs: 6,
+  sm: 10,
+  md: 14,
+  lg: 18,
   xl: 24,
+  xxl: 32,
   full: 9999,
 };
 
-// Font Sizes
+// Font Sizes — better hierarchy
 export const FontSizes = {
-  xs: 12,
-  sm: 14,
-  md: 16,
-  lg: 18,
+  xs: 11,
+  sm: 13,
+  md: 15,
+  lg: 17,
   xl: 20,
   xxl: 24,
   xxxl: 32,
-  title: 40,
+  title: 36,
+  hero: 44,
 };
 
 // Font Weights
 export const FontWeights = {
+  light: '300' as const,
   regular: '400' as const,
   medium: '500' as const,
   semibold: '600' as const,
   bold: '700' as const,
+  extrabold: '800' as const,
 };
 
-// Shadows
+// Modern Shadows — subtle and layered
 export const Shadows = {
   small: {
-    shadowColor: '#000',
+    shadowColor: '#1A1A2E',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
+    elevation: 1,
   },
   medium: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 4,
+    shadowColor: '#1A1A2E',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 3,
   },
   large: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowColor: '#1A1A2E',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 24,
+    elevation: 6,
   },
+  colored: (color: string) => ({
+    shadowColor: color,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 4,
+  }),
 };
 
 // Animation Durations
 export const AnimationDurations = {
   fast: 150,
-  normal: 300,
-  slow: 500,
+  normal: 250,
+  slow: 400,
+  spring: { damping: 15, stiffness: 150 },
 };

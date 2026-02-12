@@ -1,79 +1,69 @@
 // ============================================
-// CoupleSpace - Main Tabs Layout
+// CoupleSpace - Modern Tabs Layout
 // ============================================
 
+import { FontSizes, Shadows } from '@/constants/couple-theme';
 import { useApp } from '@/context/AppContextSupabase';
+import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-function TabIcon({ emoji, focused, color }: { emoji: string; focused: boolean; color: string }) {
-  return (
-    <View style={[styles.tabIcon, focused && styles.tabIconFocused]}>
-      <Text style={[styles.tabEmoji, { opacity: focused ? 1 : 0.6 }]}>{emoji}</Text>
-    </View>
-  );
-}
 
 export default function TabsLayout() {
   const { themeColors } = useApp();
   const insets = useSafeAreaInsets();
 
-  // Bottom padding için safe area + extra padding
-  const bottomPadding = Math.max(insets.bottom, 10);
+  const bottomPadding = Math.max(insets.bottom, 8);
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: themeColors.primary,
-        tabBarInactiveTintColor: themeColors.textSecondary,
+        tabBarActiveTintColor: themeColors.text,
+        tabBarInactiveTintColor: themeColors.textTertiary,
         tabBarStyle: {
           backgroundColor: themeColors.surface,
-          borderTopColor: themeColors.border,
+          borderTopWidth: 0,
           height: 60 + bottomPadding,
           paddingBottom: bottomPadding,
-          paddingTop: 8,
-          // Android için ek elevation
+          paddingTop: 6,
           ...Platform.select({
             android: {
-              elevation: 8,
+              elevation: 12,
             },
             ios: {
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: -2 },
-              shadowOpacity: 0.1,
-              shadowRadius: 4,
+              shadowColor: '#1A1A2E',
+              shadowOffset: { width: 0, height: -4 },
+              shadowOpacity: 0.06,
+              shadowRadius: 12,
             },
           }),
         },
         tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: '600',
+          display: 'none',
+        },
+        tabBarIconStyle: {
+          marginTop: 4,
         },
         headerStyle: {
           backgroundColor: themeColors.surface,
+          ...Shadows.small,
         },
         headerTintColor: themeColors.text,
         headerShadowVisible: false,
+        headerTitleStyle: {
+          fontWeight: '700',
+          fontSize: FontSizes.lg,
+        },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
           title: 'Ana Sayfa',
+          headerShown: false,
           tabBarIcon: ({ focused, color }) => (
-            <TabIcon emoji="🏠" focused={focused} color={color} />
-          ),
-          headerTitle: 'CoupleSpace 💕',
-        }}
-      />
-      <Tabs.Screen
-        name="chat"
-        options={{
-          title: 'Mesajlar',
-          tabBarIcon: ({ focused, color }) => (
-            <TabIcon emoji="💬" focused={focused} color={color} />
+            <Ionicons name={focused ? 'home' : 'home-outline'} size={24} color={color} />
           ),
         }}
       />
@@ -82,7 +72,7 @@ export default function TabsLayout() {
         options={{
           title: 'Günlük',
           tabBarIcon: ({ focused, color }) => (
-            <TabIcon emoji="📔" focused={focused} color={color} />
+            <Ionicons name={focused ? 'create' : 'create-outline'} size={24} color={color} />
           ),
         }}
       />
@@ -91,16 +81,27 @@ export default function TabsLayout() {
         options={{
           title: 'Anılar',
           tabBarIcon: ({ focused, color }) => (
-            <TabIcon emoji="📸" focused={focused} color={color} />
+            <Ionicons name={focused ? 'images' : 'images-outline'} size={24} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="chat"
+        options={{
+          title: 'Mesajlar',
+          headerShown: false,
+          tabBarIcon: ({ focused, color }) => (
+            <Ionicons name={focused ? 'chatbubble' : 'chatbubble-outline'} size={24} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
-          title: 'Ayarlar',
+          title: 'Profil',
+          headerShown: false,
           tabBarIcon: ({ focused, color }) => (
-            <TabIcon emoji="⚙️" focused={focused} color={color} />
+            <Ionicons name={focused ? 'person' : 'person-outline'} size={24} color={color} />
           ),
         }}
       />
@@ -115,15 +116,4 @@ export default function TabsLayout() {
   );
 }
 
-const styles = StyleSheet.create({
-  tabIcon: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tabIconFocused: {
-    transform: [{ scale: 1.1 }],
-  },
-  tabEmoji: {
-    fontSize: 22,
-  },
-});
+const styles = StyleSheet.create({});

@@ -1,26 +1,29 @@
 // ============================================
-// CoupleSpace - Love Ping Button Component
+// CoupleSpace - Modern Love Ping Button
 // ============================================
 
-import { BorderRadius, FontSizes, Shadows, Spacing } from '@/constants/couple-theme';
+import { BorderRadius, FontSizes, FontWeights, Shadows, Spacing } from '@/constants/couple-theme';
 import { useApp } from '@/context/AppContextSupabase';
 import * as Haptics from 'expo-haptics';
 import React, { useState } from 'react';
 import {
-    Modal,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Image,
+  Modal,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import Animated, {
-    runOnJS,
-    useAnimatedStyle,
-    useSharedValue,
-    withSequence,
-    withSpring,
-    withTiming
+  FadeIn,
+  FadeOut,
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withSequence,
+  withSpring,
+  withTiming,
 } from 'react-native-reanimated';
 
 interface LovePingButtonProps {
@@ -47,11 +50,11 @@ export function LovePingButton({ partnerName = 'Sevgilin' }: LovePingButtonProps
   }));
 
   const handlePressIn = () => {
-    scale.value = withSpring(0.95);
+    scale.value = withSpring(0.94, { damping: 15, stiffness: 200 });
   };
 
   const handlePressOut = () => {
-    scale.value = withSpring(1);
+    scale.value = withSpring(1, { damping: 15, stiffness: 200 });
   };
 
   const triggerHaptic = () => {
@@ -60,14 +63,13 @@ export function LovePingButton({ partnerName = 'Sevgilin' }: LovePingButtonProps
 
   const handleQuickPing = async () => {
     heartScale.value = withSequence(
-      withSpring(1.3),
-      withSpring(0.9),
-      withSpring(1.1),
+      withSpring(1.4),
+      withSpring(0.85),
+      withSpring(1.15),
       withTiming(1, { duration: 200 }, () => {
         runOnJS(triggerHaptic)();
       })
     );
-
     await sendLovePing();
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 2000);
@@ -85,37 +87,33 @@ export function LovePingButton({ partnerName = 'Sevgilin' }: LovePingButtonProps
   return (
     <>
       <View style={styles.container}>
-        {/* Quick Ping Button */}
         <AnimatedTouchable
           onPress={handleQuickPing}
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
           onLongPress={() => setShowModal(true)}
           delayLongPress={500}
-          style={[
-            styles.pingButton,
-            { backgroundColor: themeColors.heart },
-            Shadows.medium,
-            animatedStyle,
-          ]}
+          activeOpacity={0.85}
+          style={[styles.pingButton, animatedStyle]}
         >
-          <Animated.Text style={[styles.heartEmoji, heartAnimatedStyle]}>
-            💕
-          </Animated.Text>
-          <Text style={styles.pingText}>Love Ping</Text>
+          <Animated.View style={heartAnimatedStyle}>
+            <Image
+              source={require('@/assets/images/LovePing.png')}
+              style={styles.lovePingImage}
+              resizeMode="contain"
+            />
+          </Animated.View>
         </AnimatedTouchable>
 
         <Text style={[styles.hint, { color: themeColors.textSecondary }]}>
-          Basılı tut → not ekle
+          Not eklemek için basılı tut
         </Text>
 
-        {/* Success Message */}
         {showSuccess && (
           <Animated.View
-            style={[
-              styles.successBubble,
-              { backgroundColor: themeColors.success },
-            ]}
+            entering={FadeIn.duration(200)}
+            exiting={FadeOut.duration(200)}
+            style={[styles.successBubble, { backgroundColor: themeColors.success }]}
           >
             <Text style={styles.successText}>
               {partnerName}'e kalp yolladın! 💕
@@ -125,23 +123,10 @@ export function LovePingButton({ partnerName = 'Sevgilin' }: LovePingButtonProps
       </View>
 
       {/* Note Modal */}
-      <Modal
-        visible={showModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowModal(false)}
-      >
+      <Modal visible={showModal} transparent animationType="fade" onRequestClose={() => setShowModal(false)}>
         <View style={styles.modalOverlay}>
-          <View
-            style={[
-              styles.modalContent,
-              { backgroundColor: themeColors.surface },
-              Shadows.large,
-            ]}
-          >
-            <Text style={[styles.modalTitle, { color: themeColors.text }]}>
-              💌 Özel Not Ekle
-            </Text>
+          <View style={[styles.modalContent, { backgroundColor: themeColors.surface }, Shadows.large]}>
+            <Text style={[styles.modalTitle, { color: themeColors.text }]}>💌 Özel Not Ekle</Text>
             <Text style={[styles.modalSubtitle, { color: themeColors.textSecondary }]}>
               {partnerName}'e kısa bir mesaj gönder
             </Text>
@@ -150,42 +135,24 @@ export function LovePingButton({ partnerName = 'Sevgilin' }: LovePingButtonProps
               value={note}
               onChangeText={setNote}
               placeholder="Seni düşünüyorum..."
-              placeholderTextColor={themeColors.textSecondary}
+              placeholderTextColor={themeColors.textTertiary}
               multiline
               maxLength={100}
-              style={[
-                styles.noteInput,
-                {
-                  color: themeColors.text,
-                  backgroundColor: themeColors.background,
-                  borderColor: themeColors.border,
-                },
-              ]}
+              style={[styles.noteInput, { color: themeColors.text, backgroundColor: themeColors.borderLight, borderColor: themeColors.border }]}
             />
 
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 onPress={() => setShowModal(false)}
-                style={[
-                  styles.modalButton,
-                  { backgroundColor: themeColors.border },
-                ]}
+                style={[styles.modalButton, { backgroundColor: themeColors.borderLight }]}
               >
-                <Text style={[styles.modalButtonText, { color: themeColors.text }]}>
-                  İptal
-                </Text>
+                <Text style={[styles.modalButtonText, { color: themeColors.text }]}>İptal</Text>
               </TouchableOpacity>
-
               <TouchableOpacity
                 onPress={handleSendWithNote}
-                style={[
-                  styles.modalButton,
-                  { backgroundColor: themeColors.heart },
-                ]}
+                style={[styles.modalButton, { backgroundColor: themeColors.heart }, Shadows.colored(themeColors.heart)]}
               >
-                <Text style={[styles.modalButtonText, { color: '#FFFFFF' }]}>
-                  Gönder 💕
-                </Text>
+                <Text style={[styles.modalButtonText, { color: '#FFFFFF' }]}>Gönder 💕</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -198,55 +165,51 @@ export function LovePingButton({ partnerName = 'Sevgilin' }: LovePingButtonProps
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    marginVertical: Spacing.md,
+    marginVertical: Spacing.sm,
   },
   pingButton: {
-    flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.xl,
-    borderRadius: BorderRadius.full,
+    justifyContent: 'center',
+    borderRadius: 30,
+    overflow: 'hidden',
   },
-  heartEmoji: {
-    fontSize: 24,
-    marginRight: Spacing.sm,
-  },
-  pingText: {
-    color: '#FFFFFF',
-    fontSize: FontSizes.lg,
-    fontWeight: '600',
+  lovePingImage: {
+    width: 200,
+    height: 50,
+    borderRadius: 30,
   },
   hint: {
     fontSize: FontSizes.xs,
-    marginTop: Spacing.sm,
+    marginTop: Spacing.xs,
+    fontWeight: FontWeights.medium,
   },
   successBubble: {
     position: 'absolute',
     top: -40,
-    paddingVertical: Spacing.xs,
+    paddingVertical: Spacing.xs + 2,
     paddingHorizontal: Spacing.md,
     borderRadius: BorderRadius.full,
   },
   successText: {
     color: '#FFFFFF',
     fontSize: FontSizes.sm,
-    fontWeight: '500',
+    fontWeight: FontWeights.medium,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: Spacing.lg,
   },
   modalContent: {
     width: '100%',
-    borderRadius: BorderRadius.xl,
+    borderRadius: BorderRadius.xxl,
     padding: Spacing.lg,
   },
   modalTitle: {
     fontSize: FontSizes.xl,
-    fontWeight: 'bold',
+    fontWeight: FontWeights.bold,
     textAlign: 'center',
     marginBottom: Spacing.xs,
   },
@@ -256,7 +219,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
   },
   noteInput: {
-    borderRadius: BorderRadius.md,
+    borderRadius: BorderRadius.lg,
     borderWidth: 1,
     padding: Spacing.md,
     minHeight: 100,
@@ -266,16 +229,16 @@ const styles = StyleSheet.create({
   modalButtons: {
     flexDirection: 'row',
     marginTop: Spacing.lg,
-    gap: Spacing.md,
+    gap: Spacing.sm,
   },
   modalButton: {
     flex: 1,
     paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.md,
+    borderRadius: BorderRadius.lg,
     alignItems: 'center',
   },
   modalButtonText: {
     fontSize: FontSizes.md,
-    fontWeight: '600',
+    fontWeight: FontWeights.semibold,
   },
 });

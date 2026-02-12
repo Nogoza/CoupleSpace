@@ -1,5 +1,5 @@
 // ============================================
-// CoupleSpace - Card Component
+// CoupleSpace - Modern Card Component
 // ============================================
 
 import { BorderRadius, Shadows, Spacing } from '@/constants/couple-theme';
@@ -10,7 +10,7 @@ import { StyleSheet, View, ViewStyle } from 'react-native';
 interface CardProps {
   children: React.ReactNode;
   style?: ViewStyle;
-  variant?: 'default' | 'elevated' | 'outlined';
+  variant?: 'default' | 'elevated' | 'outlined' | 'soft';
   padding?: 'none' | 'small' | 'medium' | 'large';
 }
 
@@ -38,14 +38,27 @@ export function Card({
   const getVariantStyle = (): ViewStyle => {
     switch (variant) {
       case 'elevated':
-        return Shadows.medium;
+        return {
+          ...Shadows.medium,
+          borderWidth: 1,
+          borderColor: themeColors.borderLight,
+        };
       case 'outlined':
         return {
           borderWidth: 1,
           borderColor: themeColors.border,
         };
+      case 'soft':
+        return {
+          backgroundColor: themeColors.primaryLight,
+          borderWidth: 0,
+        };
       default:
-        return Shadows.small;
+        return {
+          ...Shadows.small,
+          borderWidth: 1,
+          borderColor: themeColors.borderLight,
+        };
     }
   };
 
@@ -65,6 +78,7 @@ export function Card({
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: BorderRadius.lg,
+    borderRadius: BorderRadius.xl,
+    overflow: 'hidden',
   },
 });
