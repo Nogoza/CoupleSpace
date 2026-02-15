@@ -509,6 +509,25 @@ export interface Database {
           }
         ];
       };
+      love_quotes: {
+        Row: {
+          id: number;
+          quote_text: string;
+          day_order: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: number;
+          quote_text: string;
+          day_order: number;
+          created_at?: string;
+        };
+        Update: {
+          quote_text?: string;
+          day_order?: number;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -520,6 +539,10 @@ export interface Database {
           p_entry_date: string;
         };
         Returns: void;
+      };
+      get_daily_quote: {
+        Args: Record<string, never>;
+        Returns: string;
       };
     };
     Enums: {
