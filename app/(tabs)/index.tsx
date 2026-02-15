@@ -6,12 +6,13 @@ import { LovePingButton } from '@/components/features/LovePingButton';
 import { ProfileAvatar } from '@/components/ui/ProfileAvatar';
 import { BorderRadius, FontSizes, FontWeights, Spacing } from '@/constants/couple-theme';
 import { useApp } from '@/context/AppContextSupabase';
+import { LoveQuoteService } from '@/services/supabase-service';
 import { Memory } from '@/types';
 import { format } from 'date-fns';
 import { Image as ExpoImage } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Dimensions,
   FlatList,
@@ -30,38 +31,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CAROUSEL_ITEM_WIDTH = SCREEN_WIDTH - Spacing.md * 2;
 const CAROUSEL_ITEM_HEIGHT = 180;
 
-const LOVE_QUOTES = [
-  'Seni sevmek, her gün yeniden doğmak gibi.',
-  'Aşk, iki ruhun tek bir bedende yaşamasıdır.',
-  'Seninle her an, bir ömre bedel.',
-  'Gözlerin benim için dünyanın en güzel manzarası.',
-  'Seni düşününce yüzümdeki gülümsemeyi kimse silemez.',
-  'Aşk, mesafeleri anlamsız kılan tek güçtür.',
-  'Senin varlığın, benim huzurum.',
-  'Kalbim seninle attıkça, hayat güzel.',
-  'Aşk bir kelimedir, ama sen ona anlam verdin.',
-  'Seninle geçen her saniye, hazinedir.',
-  'Seni sevmek, nefes almak kadar doğal.',
-  'Dünya döndükçe, kalbim hep seni arayacak.',
-  'Sen benim en güzel tesadüfümsün.',
-  'Aşk, seninle başlayan her cümlemin sonudur.',
-  'Seninle olmak, evde olmak demek.',
-  'Kalbimin tek sahibi sensin.',
-  'Seni her gördüğümde ilk günkü gibi heyecanlanıyorum.',
-  'Aşk, seni düşünürken geçen zamandır.',
-  'Seninle her mevsim bahar.',
-  'Sen olmadan eksik kalır her şey.',
-  'Seni sevmek, hayatımın en kolay kararıydı.',
-  'Gözlerinde kaybolmak, en güzel yolculuk.',
-  'Aşk, iki kalbin aynı anda atmasıdır.',
-  'Seninle her gün bir macera.',
-  'Sen benim sabah güneşim, gece yıldızımsın.',
-  'Seni seviyorum, bugün de, yarın da, her zaman.',
-  'Kalbim seninle bir bütün.',
-  'Aşk, seninle paylaşılan sessizliktir.',
-  'Her anımız bir hatıra, her hatıramız bir hazine.',
-  'Seninle büyüyen bir aşk, sonsuzluğa uzanır.',
-];
+
 
 export default function HomeScreen() {
   const {
@@ -77,9 +47,16 @@ export default function HomeScreen() {
 
   const insets = useSafeAreaInsets();
   const [refreshing, setRefreshing] = useState(false);
+  const [dailyQuote, setDailyQuote] = useState<string>('...');
+
+  // Sunucu saatine göre günün sözünü çek
+  useEffect(() => {
+    LoveQuoteService.getDailyQuote().then(setDailyQuote);
+  }, []);
 
   const onRefresh = async () => {
     setRefreshing(true);
+    LoveQuoteService.getDailyQuote().then(setDailyQuote);
     setTimeout(() => setRefreshing(false), 1000);
   };
 
@@ -259,7 +236,7 @@ export default function HomeScreen() {
           <View style={[styles.quoteCard, { backgroundColor: themeColors.primaryLight, borderColor: themeColors.borderLight }]}>
             <Text style={styles.quoteEmoji}>💕</Text>
             <Text style={[styles.quoteText, { color: themeColors.primaryDark }]}>
-              {LOVE_QUOTES[Math.floor((new Date().getTime() / 86400000)) % LOVE_QUOTES.length]}
+              {dailyQuote}
             </Text>
           </View>
         </Animated.View>

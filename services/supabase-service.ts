@@ -751,6 +751,26 @@ export const SettingsService = {
   },
 };
 
+// ==================== LOVE QUOTE SERVICE ====================
+export const LoveQuoteService = {
+  // Sunucu saatine göre günün sözünü al (RPC fonksiyonu kullanır)
+  async getDailyQuote(): Promise<string> {
+    try {
+      const { data, error } = await supabase.rpc('get_daily_quote');
+
+      if (error) {
+        console.error('Error fetching daily quote:', error);
+        return 'Sevgi her yerde 💕';
+      }
+
+      return data || 'Sevgi her yerde 💕';
+    } catch (err) {
+      console.error('Unexpected error in getDailyQuote:', err);
+      return 'Sevgi her yerde 💕';
+    }
+  },
+};
+
 // ==================== MAPPERS ====================
 // Database formatından uygulama formatına dönüştürücüler
 
